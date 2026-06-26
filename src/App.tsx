@@ -1,3 +1,5 @@
+'use client';
+
 import { config } from './config';
 import { InputPanel } from './components/InputPanel';
 import { OutputPanel } from './components/OutputPanel';
@@ -10,7 +12,7 @@ const STATUS: Record<string, { label: string; dot: string }> = {
   error: { label: 'Something went wrong', dot: 'bg-brand' },
 };
 
-export default function App() {
+export default function App({ userEmail }: { userEmail?: string | null }) {
   const studio = useStudio();
   const status = STATUS[studio.phase];
 
@@ -27,9 +29,24 @@ export default function App() {
             <div className="text-[12px] font-medium text-muted">{config.brand.tagline}</div>
           </div>
         </div>
-        <div className="flex items-center gap-2 rounded-full bg-panel px-3.5 py-1.5">
-          <span className={`h-2 w-2 rounded-full ${status.dot}`} />
-          <span className="text-[13px] font-semibold text-muted">{status.label}</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 rounded-full bg-panel px-3.5 py-1.5">
+            <span className={`h-2 w-2 rounded-full ${status.dot}`} />
+            <span className="text-[13px] font-semibold text-muted">{status.label}</span>
+          </div>
+          {userEmail && (
+            <div className="flex items-center gap-2.5 border-l border-line pl-3">
+              <span className="hidden text-[13px] font-medium text-muted sm:inline">
+                {userEmail}
+              </span>
+              <a
+                href="/auth/signout"
+                className="rounded-lg px-2.5 py-1.5 text-[13px] font-semibold text-muted transition hover:bg-line-soft hover:text-ink"
+              >
+                Sign out
+              </a>
+            </div>
+          )}
         </div>
       </header>
 
