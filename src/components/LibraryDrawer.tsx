@@ -1,0 +1,88 @@
+import { useEffect, useState } from 'react';
+import { listMyAds, type SavedAd } from '../lib/library';
+import { Download, Spinner, XMark } from './icons';
+
+export function LibraryDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [ads, setAds] = useState<SavedAd[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    setAds(null);
+    setError(null);
+    listMyAds()
+      .then(setAds)
+      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load'));
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
+      <aside className="relative flex h-full w-full max-w-md flex-col border-l border-line bg-surface shadow-2xl">
+        <div className="flex items-center justify-between border-b border-line px-6 py-4">
+          <h2 className="text-[16px] font-extrabold text-ink">My library</h2>
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-faint transition hover:bg-line-soft hover:text-ink"
+          >
+            <XMark />
+          </button>
+        </div>
+
+        <div className="scroll-slim flex-1 overflow-y-auto p-6">
+          {!ads && !error && (
+            <div className="flex items-center gap-2 text-[14px] text-muted">
+              <Spinner className="text-muted" /> Loading…
+            </div>
+          )}
+          {error && <p className="text-[14px] text-brand">{error}</p>}
+          {ads && ads.length === 0 && (
+            <p className="text-[14px] text-muted">
+              No saved ads yet. Generate one and tap “Save to library”.
+            </p>
+          )}
+          {ads && ads.length > 0 && (
+            <div className="grid grid-cols-2 gap-4">
+              {ads.map((ad) => (
+                <div key={ad.id} className="overflow-hidden rounded-xl border border-line">
+                  <div className="aspect-square bg-black">
+                    {ad.format === 'video' ? (
+                      <video src={ad.fileUrl} className="h-full w-full object-contain" muted loop />
+                    ) : (
+                      <img src={ad.fileUrl} alt="" className="h-full w-full object-contain" />
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between gap-2 p-2.5">
+                    <div className="min-w-0">
+                      <div className="truncate text-[12px] font-semibold text-ink">
+                        {ad.reference ?? 'Verse ad'}
+                      </div>
+                      <div className="text-[11px] text-faint">
+                        {ad.versionAbbr ? `${ad.versionAbbr} · ` : ''}
+                        {ad.aspect}
+                      </div>
+                    </div>
+                    <a
+                      href={ad.fileUrl}
+                      download
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-line-soft hover:text-ink"
+                      aria-label="Download"
+                    >
+                      <Download />
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </aside>
+    </div>
+  );
+}

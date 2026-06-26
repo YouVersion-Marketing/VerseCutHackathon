@@ -58,6 +58,10 @@ export function useStudio() {
   const [phase, setPhase] = useState<Phase>('idle');
   const [stages, setStages] = useState<Stage[]>([]);
   const [asset, setAsset] = useState<RenderedAsset | null>(null);
+  const [lastPassage, setLastPassage] = useState<{
+    reference: string;
+    versionAbbreviation: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Load languages once; default to English when available.
@@ -207,6 +211,10 @@ export function useStudio() {
       });
       patchStage('fetch', { status: 'done' });
       patchStage('compose', { status: 'active' });
+      setLastPassage({
+        reference: passage.reference,
+        versionAbbreviation: passage.versionAbbreviation,
+      });
 
       const dimensions = ASPECT_DIMENSIONS[aspect];
       const input = {
@@ -316,6 +324,7 @@ export function useStudio() {
     phase,
     stages,
     asset,
+    lastPassage,
     error,
     canGenerate,
     generate,

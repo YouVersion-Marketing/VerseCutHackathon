@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { config } from './config';
 import { InputPanel } from './components/InputPanel';
 import { OutputPanel } from './components/OutputPanel';
+import { LibraryDrawer } from './components/LibraryDrawer';
 import { useStudio } from './lib/useStudio';
 import { BIBLE_APP_ASSETS } from './lib/iconCatalog';
 
@@ -16,6 +18,7 @@ const STATUS: Record<string, { label: string; dot: string }> = {
 export default function App({ userEmail }: { userEmail?: string | null }) {
   const studio = useStudio();
   const status = STATUS[studio.phase];
+  const [libraryOpen, setLibraryOpen] = useState(false);
 
   const langIcon = BIBLE_APP_ASSETS['icon-only'][studio.languageId];
   const headerLogo = langIcon
@@ -36,6 +39,13 @@ export default function App({ userEmail }: { userEmail?: string | null }) {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setLibraryOpen(true)}
+            className="rounded-lg px-3 py-1.5 text-[13px] font-semibold text-muted transition hover:bg-line-soft hover:text-ink"
+          >
+            Library
+          </button>
           <div className="flex items-center gap-2 rounded-full bg-panel px-3.5 py-1.5">
             <span className={`h-2 w-2 rounded-full ${status.dot}`} />
             <span className="text-[13px] font-semibold text-muted">{status.label}</span>
@@ -65,6 +75,8 @@ export default function App({ userEmail }: { userEmail?: string | null }) {
           <OutputPanel studio={studio} />
         </main>
       </div>
+
+      <LibraryDrawer open={libraryOpen} onClose={() => setLibraryOpen(false)} />
     </div>
   );
 }

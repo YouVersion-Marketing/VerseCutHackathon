@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { config } from '../config';
 import type { Stage, useStudio } from '../lib/useStudio';
+import { saveAdToLibrary } from '../lib/library';
 import { Check, Download, ImageIcon, Spinner } from './icons';
 
 type Studio = ReturnType<typeof useStudio>;
@@ -65,6 +67,25 @@ function PreviewFrame({
 export function OutputPanel({ studio }: { studio: Studio }) {
   const { phase, stages, asset, aspect, format, error } = studio;
   const kindLabel = format === 'video' ? 'VIDEO' : 'IMAGE';
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
+  async function saveToLibrary() {
+    if (!asset) return;
+    setSaveState('saving');
+    try {
+      await saveAdToLibrary(asset, {
+        title: studio.lastPassage?.reference,
+        format,
+        aspect,
+        language: studio.languageId,
+        reference: studio.lastPassage?.reference ?? null,
+        versionAbbr: studio.lastPassage?.versionAbbreviation ?? null,
+      });
+      setSaveState('saved');
+    } catch {
+      setSaveState('error');
+    }
+  }
 
   function download() {
     if (!asset) return;
@@ -134,13 +155,32 @@ export function OutputPanel({ studio }: { studio: Studio }) {
             </PreviewFrame>
 
             <div className="mt-6 flex flex-col items-center gap-3">
-              <button
-                type="button"
-                onClick={download}
-                className="flex h-12 items-center justify-center gap-2 rounded-xl bg-ink px-7 text-[15px] font-semibold text-white transition hover:bg-black active:scale-[0.99]"
-              >
-                <Download /> Download {asset.ext.toUpperCase()}
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={download}
+                  className="flex h-12 items-center justify-center gap-2 rounded-xl bg-ink px-7 text-[15px] font-semibold text-white transition hover:bg-black active:scale-[0.99]"
+                >
+                  <Download /> Download {asset.ext.toUpperCase()}
+                </button>
+                <button
+                  type="button"
+                  onClick={saveToLibrary}
+                  disabled={saveState === 'saving' || saveState === 'saved'}
+                  className="flex h-12 items-center justify-center gap-2 rounded-xl border border-line bg-surface px-6 text-[15px] font-semibold text-ink transition hover:bg-line-soft disabled:opacity-60"
+                >
+                  {saveState === 'saving' && <Spinner className="text-muted" />}
+                  {saveState === 'saved' && <Check />}
+                  {saveState === 'saved'
+                    ? 'Saved'
+                    : saveState === 'error'
+                      ? 'Retry save'
+                      : 'Save to library'}
+                </button>
+              </div>
+              {saveState === 'error' && (
+                <p className="text-[12px] text-brand">Couldn’t save — try again.</p>
+              )}
               {asset.note && (
                 <p className="max-w-xs text-center text-[12px] leading-relaxed text-muted">
                   {asset.note}

@@ -1,0 +1,46 @@
+// Verse Ad Studio — asset database (Neon Postgres via Prisma).
+// Metadata lives here; the actual files live in Vercel Blob (fileUrl).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+/// A rendered ad saved to a user's library.
+model GeneratedAd {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  ownerId     String
+  ownerEmail  String
+  title       String?
+  format      String // 'image' | 'video'
+  aspect      String
+  language    String?
+  reference   String?
+  versionAbbr String?
+  fileUrl     String
+  mime        String?
+  sizeBytes   Int?
+
+  @@index([ownerId])
+}
+
+/// A background asset uploaded by a user and shared with the team.
+model SharedAsset {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  ownerId    String
+  ownerEmail String
+  kind       String // 'image' | 'video'
+  name       String
+  fileUrl    String
+  mime       String?
+  sizeBytes  Int?
+
+  @@index([kind])
+}
