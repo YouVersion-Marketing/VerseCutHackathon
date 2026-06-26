@@ -7,6 +7,13 @@ export type Background =
   | { type: 'video'; video: HTMLVideoElement }
   | { type: 'gradient' };
 
+export interface VerseFontInfo {
+  family: string;
+  rtl: boolean;
+  /** Latin/Cyrillic/Greek uppercase the reference; complex scripts must not. */
+  script: string;
+}
+
 export interface ComposeOptions {
   width: number;
   height: number;
@@ -17,6 +24,8 @@ export interface ComposeOptions {
   logo: CanvasImageSource | null;
   /** 0..1 animation progress (1 = fully revealed). Use 1 for static images. */
   t?: number;
+  /** Script-aware verse font (defaults to Latin/Fraunces, LTR). */
+  verseFont?: VerseFontInfo;
 }
 
 const easeOut = (x: number) => 1 - Math.pow(1 - x, 3);
@@ -70,19 +79,27 @@ function wrapText(
   text: string,
   maxWidth: number,
 ): string[] {
-  const words = text.split(/\s+/);
+  // Character-aware greedy wrap: breaks at spaces for space-delimited scripts
+  // (Latin/Cyrillic/Arabic) and between characters for scripts without spaces
+  // (CJK/Japanese/Thai), so no line overflows the text box.
   const lines: string[] = [];
-  let current = '';
-  for (const word of words) {
-    const test = current ? `${current} ${word}` : word;
-    if (ctx.measureText(test).width > maxWidth && current) {
-      lines.push(current);
-      current = word;
+  let line = '';
+  for (const ch of text) {
+    const test = line + ch;
+    if (line && ctx.measureText(test).width > maxWidth) {
+      const lastSpace = line.lastIndexOf(' ');
+      if (lastSpace > 0) {
+        lines.push(line.slice(0, lastSpace));
+        line = line.slice(lastSpace + 1) + ch;
+      } else {
+        lines.push(line);
+        line = ch;
+      }
     } else {
-      current = test;
+      line = test;
     }
   }
-  if (current) lines.push(current);
+  if (line) lines.push(line);
   return lines;
 }
 
@@ -96,22 +113,23 @@ function fitVerse(
   maxWidth: number,
   maxHeight: number,
   startSize: number,
+  family: string,
 ) {
+  const font = (px: number) => `600 ${px}px '${family}', Georgia, serif`;
   let size = startSize;
   const minSize = Math.round(startSize * 0.42);
-  // eslint-disable-next-line no-constant-condition
   while (size > minSize) {
-    ctx.font = `600 ${size}px 'Fraunces', Georgia, serif`;
+    ctx.font = font(size);
     const lines = wrapText(ctx, text, maxWidth);
-    const lineHeight = size * 1.18;
+    const lineHeight = size * 1.32;
     if (lines.length * lineHeight <= maxHeight) {
       return { lines, size, lineHeight };
     }
     size -= 4;
   }
-  ctx.font = `600 ${minSize}px 'Fraunces', Georgia, serif`;
+  ctx.font = font(minSize);
   const lines = wrapText(ctx, text, maxWidth);
-  return { lines, size: minSize, lineHeight: minSize * 1.18 };
+  return { lines, size: minSize, lineHeight: minSize * 1.32 };
 }
 
 export function composeFrame(
@@ -154,6 +172,13 @@ export function composeFrame(
   const logoSize = Math.round(Math.min(w, h) * 0.085);
   const logoBaselineY = h - margin - logoSize;
 
+  // Script-aware verse font + direction.
+  const vf = opts.verseFont ?? { family: 'Fraunces', rtl: false, script: 'latin' };
+  const rtl = vf.rtl;
+  const casedScript = vf.script === 'latin' || vf.script === 'cyrillic' || vf.script === 'greek';
+  const anchorX = rtl ? w - margin : margin;
+  const align: CanvasTextAlign = rtl ? 'right' : 'left';
+
   // 4. Verse text (anchored above the logo row)
   const verseBudgetH = h * (background.type === 'gradient' ? 0.5 : 0.42);
   const startSize = Math.round(w * 0.062);
@@ -163,41 +188,52 @@ export function composeFrame(
     textMaxWidth,
     verseBudgetH,
     startSize,
+    vf.family,
   );
 
   const refSize = Math.round(size * 0.42);
-  const refGap = refSize * 2.2;
+  const refGap = refSize * 2.4;
   const blockHeight = lines.length * lineHeight + refGap;
   let baselineY = logoBaselineY - Math.round(h * 0.04) - blockHeight + lineHeight;
 
   ctx.save();
   ctx.globalAlpha = reveal;
   ctx.translate(0, (1 - reveal) * 24);
-  ctx.textAlign = 'left';
+  ctx.direction = rtl ? 'rtl' : 'ltr';
+  ctx.textAlign = align;
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = '#ffffff';
   ctx.shadowColor = 'rgba(0,0,0,0.35)';
   ctx.shadowBlur = Math.round(size * 0.25);
   ctx.shadowOffsetY = 2;
-  ctx.font = `600 ${size}px 'Fraunces', Georgia, serif`;
+  ctx.font = `600 ${size}px '${vf.family}', Georgia, serif`;
   for (const line of lines) {
-    ctx.fillText(line, margin, baselineY);
+    ctx.fillText(line, anchorX, baselineY);
     baselineY += lineHeight;
   }
   ctx.restore();
 
-  // 5. Reference + version (uppercase, tracked, brand-tinted)
+  // 5. Reference + version (brand-tinted). Latin/Cyrillic/Greek get the tracked
+  //    uppercase treatment; complex scripts are drawn as-is (no letter-spacing,
+  //    which would break shaping/ligatures).
   ctx.save();
   ctx.globalAlpha = easeOut(Math.min(1, Math.max(0, (t - 0.25) / 0.5)));
-  ctx.textAlign = 'left';
   ctx.fillStyle = '#fe5562';
+  const refText = casedScript ? opts.reference.toUpperCase() : opts.reference;
   const label = opts.versionAbbreviation
-    ? `${opts.reference.toUpperCase()}  ·  ${opts.versionAbbreviation}`
-    : opts.reference.toUpperCase();
-  ctx.font = `700 ${refSize}px 'Plus Jakarta Sans', system-ui, sans-serif`;
-  // Letter-spacing via manual draw.
+    ? `${refText}  ·  ${opts.versionAbbreviation}`
+    : refText;
+  const refFamily = casedScript ? 'Plus Jakarta Sans' : vf.family;
+  ctx.font = `700 ${refSize}px '${refFamily}', system-ui, sans-serif`;
   const lsY = baselineY - lineHeight + refGap * 0.7;
-  drawTracked(ctx, label, margin, lsY, refSize * 0.08);
+  if (casedScript) {
+    ctx.textAlign = 'left';
+    drawTracked(ctx, label, margin, lsY, refSize * 0.08);
+  } else {
+    ctx.direction = rtl ? 'rtl' : 'ltr';
+    ctx.textAlign = align;
+    ctx.fillText(label, anchorX, lsY);
+  }
   ctx.restore();
 
   // 6. Logo bottom-left — drawn at a fixed height, preserving aspect ratio so

@@ -4,6 +4,7 @@ import { config, type AspectRatio } from '../config';
 import { composeFrame, ensureFontsReady, type Background } from './compositor';
 import type { Passage } from './bible';
 import { BIBLE_APP_ASSETS, type LogoStyle } from './iconCatalog';
+import { loadVerseFont } from './fonts';
 
 export interface RenderInput {
   passage: Passage;
@@ -87,6 +88,7 @@ async function buildBackground(
 // ---------------------------------------------------------------------------
 export async function renderImage(input: RenderInput): Promise<RenderedAsset> {
   await ensureFontsReady();
+  const verseFont = await loadVerseFont(input.passage.text, input.languageId);
   const logo = await loadImage(resolveLogoPath(input.languageId, input.logoStyle)).catch(
     () => null,
   );
@@ -105,6 +107,7 @@ export async function renderImage(input: RenderInput): Promise<RenderedAsset> {
     versionAbbreviation: input.passage.versionAbbreviation,
     background,
     logo,
+    verseFont,
     t: 1,
   });
 
@@ -208,6 +211,7 @@ async function captureCanvas(
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext('2d')!;
+  const verseFont = await loadVerseFont(input.passage.text, input.languageId);
 
   const fps = config.output.videoFps;
   const durationMs = config.output.videoDurationSec * 1000;
@@ -252,6 +256,7 @@ async function captureCanvas(
         versionAbbreviation: input.passage.versionAbbreviation,
         background,
         logo,
+        verseFont,
         t,
       });
       onProgress(t);

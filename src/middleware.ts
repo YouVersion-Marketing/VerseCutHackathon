@@ -5,18 +5,20 @@ import { isPublic } from '@/lib/auth/route-access';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Validate the WorkOS session (refreshes if needed).
+  // Always run authkit so withAuth() can resolve the session in server
+  // components. The dev-only bypass (guarded by NODE_ENV, so it can never apply
+  // in production) skips only the redirect gate, not session processing.
   const { session, headers } = await authkit(request);
+  const bypass =
+    process.env.NODE_ENV !== 'production' && process.env.DISABLE_AUTH === 'true';
 
-  if (!session.user && !isPublic(pathname)) {
+  if (!bypass && !session.user && !isPublic(pathname)) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     return handleAuthkitProxy(request, headers, { redirect: '/login' });
   }
 
-  // Pass through with the (possibly refreshed) session headers so withAuth()
-  // resolves the user in server components.
   return handleAuthkitProxy(request, headers);
 }
 
