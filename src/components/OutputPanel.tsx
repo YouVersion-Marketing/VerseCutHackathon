@@ -45,14 +45,15 @@ function PreviewFrame({
   aspect: string;
   children: React.ReactNode;
 }) {
-  const portrait = aspect === '9:16';
+  // Size tall/square formats by height; only 16:9 sizes by width.
+  const byHeight = aspect !== '16:9';
   return (
     <div
       className="overflow-hidden rounded-2xl bg-black shadow-[0_24px_60px_-20px_rgba(0,0,0,0.45)] ring-1 ring-black/5"
       style={{
         aspectRatio: aspect.replace(':', ' / '),
-        height: portrait ? 'min(74vh, 720px)' : undefined,
-        width: portrait ? undefined : 'min(80%, 880px)',
+        height: byHeight ? 'min(74vh, 720px)' : undefined,
+        width: byHeight ? undefined : 'min(80%, 880px)',
         maxWidth: '100%',
       }}
     >

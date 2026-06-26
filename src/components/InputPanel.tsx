@@ -152,11 +152,28 @@ export function InputPanel({ studio }: { studio: Studio }) {
               onChange={studio.setAspect}
               options={[
                 { value: '16:9', label: '16:9' },
+                { value: '1:1', label: '1:1' },
                 { value: '9:16', label: '9:16' },
               ]}
             />
           </div>
         </div>
+
+        {studio.format === 'image' && (
+          <div className="mb-4 flex items-center gap-3">
+            <span className="text-[13px] font-semibold text-ink">File type</span>
+            <div className="w-[180px]">
+              <Segmented
+                value={studio.imageFormat}
+                onChange={studio.setImageFormat}
+                options={[
+                  { value: 'png', label: 'PNG' },
+                  { value: 'jpg', label: 'JPG' },
+                ]}
+              />
+            </div>
+          </div>
+        )}
 
         <button
           type="button"

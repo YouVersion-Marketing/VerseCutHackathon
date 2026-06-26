@@ -50,6 +50,7 @@ export function useStudio() {
   const [libraryBusy, setLibraryBusy] = useState(false);
   const [format, setFormat] = useState<OutputFormat>(config.output.defaultFormat);
   const [aspect, setAspect] = useState<AspectRatio>(config.output.defaultAspect);
+  const [imageFormat, setImageFormat] = useState<'png' | 'jpg'>('png');
   const [logoStyle, setLogoStyle] = useState<LogoStyle>(config.brand.defaultLogoStyle);
 
   // Generation
@@ -214,7 +215,9 @@ export function useStudio() {
         imageFile,
         videoFile,
         videoUrl: libraryVideo?.url ?? null,
-        mimeType: 'image/png' as const,
+        mimeType: (imageFormat === 'jpg' ? 'image/jpeg' : 'image/png') as
+          | 'image/png'
+          | 'image/jpeg',
         languageId,
         logoStyle,
       };
@@ -260,6 +263,7 @@ export function useStudio() {
     imageFile,
     videoFile,
     libraryVideo,
+    imageFormat,
     logoStyle,
     patchStage,
   ]);
@@ -299,6 +303,8 @@ export function useStudio() {
     setFormat,
     aspect,
     setAspect,
+    imageFormat,
+    setImageFormat,
     logoStyle,
     setLogoStyle,
     // generation
