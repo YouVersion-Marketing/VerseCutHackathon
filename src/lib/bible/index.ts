@@ -1,0 +1,25 @@
+import { config } from '../../config';
+import { ApiBibleProvider } from './apiBibleProvider';
+import { MockBibleProvider } from './mockProvider';
+import { YouVersionPlatformProvider } from './youVersionPlatformProvider';
+import type { BibleProvider } from './types';
+
+let cached: BibleProvider | null = null;
+
+/** Returns the configured Bible provider. Falls back to mock if unconfigured. */
+export function getBibleProvider(): BibleProvider {
+  if (cached) return cached;
+  switch (config.bible.provider) {
+    case 'youversion':
+      cached = new YouVersionPlatformProvider();
+      break;
+    case 'api.bible':
+      cached = config.bible.apiKey ? new ApiBibleProvider() : new MockBibleProvider();
+      break;
+    default:
+      cached = new MockBibleProvider();
+  }
+  return cached;
+}
+
+export * from './types';

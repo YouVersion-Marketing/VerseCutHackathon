@@ -1,0 +1,690 @@
+{
+  "source": "YouVersion Stories 4.0 + Videos 5.0 (seeded from alfred/video_api pulls)",
+  "note": "Catalog of available Guided Scripture videos per date. Playback URLs are resolved live via the Videos API at selection time.",
+  "dates": {
+    "2026-01-05": [
+      {
+        "videoId": 50315,
+        "lessonId": 33364,
+        "title": "Lectio 365",
+        "language": "en",
+        "organization": "24-7 Prayer",
+        "references": [
+          "PSA.141.2"
+        ],
+        "runtime": 510
+      },
+      {
+        "videoId": 51401,
+        "lessonId": 34282,
+        "title": "Let God's Word Transform You",
+        "language": "en",
+        "organization": "YouVersion",
+        "references": [
+          "ROM.12.2"
+        ],
+        "runtime": 110
+      }
+    ],
+    "2026-01-06": [
+      {
+        "videoId": 50316,
+        "lessonId": 33365,
+        "title": "Lectio 365",
+        "language": "en",
+        "organization": "24-7 Prayer",
+        "references": [
+          "PSA.149.5"
+        ],
+        "runtime": 481
+      },
+      {
+        "videoId": 51403,
+        "lessonId": 34283,
+        "title": "Your Light Has Come",
+        "language": "en",
+        "organization": "YouVersion",
+        "references": [
+          "ISA.60.1"
+        ],
+        "runtime": 120
+      }
+    ],
+    "2026-06-23": [
+      {
+        "videoId": 53005,
+        "lessonId": 38896,
+        "title": "Laat God se geregtigheid deur jou vloei",
+        "language": "af",
+        "organization": "YouVersion",
+        "references": [
+          "AMO.5.24"
+        ],
+        "runtime": 142
+      },
+      {
+        "videoId": 50392,
+        "lessonId": 38479,
+        "title": "Tuesday Night Prayers",
+        "language": "en",
+        "organization": "24-7 Prayer",
+        "references": [
+          "PSA.42.8"
+        ],
+        "runtime": 532
+      },
+      {
+        "videoId": 52824,
+        "lessonId": 38637,
+        "title": "What Righteousness Means",
+        "language": "en",
+        "organization": "Bible Project",
+        "references": [
+          "AMO.5.24"
+        ],
+        "runtime": 61
+      },
+      {
+        "videoId": 53119,
+        "lessonId": 38730,
+        "title": "Let Justice Roll",
+        "language": "en",
+        "organization": "YouVersion",
+        "references": [
+          "AMO.5.24"
+        ],
+        "runtime": 120
+      },
+      {
+        "videoId": 53131,
+        "lessonId": 38830,
+        "title": "Jesus' Power Over Disease",
+        "language": "en",
+        "organization": "Passion Movement",
+        "references": [
+          "MAT.8.1+MAT.8.2+MAT.8.3+MAT.8.4"
+        ],
+        "runtime": 164
+      },
+      {
+        "videoId": 52900,
+        "lessonId": 38534,
+        "title": "Acércate a Dios hoy",
+        "language": "es",
+        "organization": "YouVersion",
+        "references": [
+          "AMO.5.24"
+        ],
+        "runtime": 61
+      },
+      {
+        "videoId": 53086,
+        "lessonId": 38745,
+        "title": "Reordenar Nossas Prioridades",
+        "language": "pt",
+        "organization": "YouVersion",
+        "references": [
+          "AMO.5.24"
+        ],
+        "runtime": 91
+      }
+    ],
+    "2026-06-24": [
+      {
+        "videoId": 53006,
+        "lessonId": 38897,
+        "title": "'n Waarborg wat alles gaan herstel",
+        "language": "af",
+        "organization": "YouVersion",
+        "references": [
+          "ROM.8.18"
+        ],
+        "runtime": 110
+      },
+      {
+        "videoId": 50393,
+        "lessonId": 38480,
+        "title": "Wednesday Night Prayers",
+        "language": "en",
+        "organization": "24-7 Prayer",
+        "references": [
+          "LAM.3.22+LAM.3.23"
+        ],
+        "runtime": 528
+      },
+      {
+        "videoId": 52823,
+        "lessonId": 38638,
+        "title": "Trusting Jesus Through Suffering",
+        "language": "en",
+        "organization": "Bible Project",
+        "references": [
+          "ROM.8.18"
+        ],
+        "runtime": 76
+      },
+      {
+        "videoId": 53176,
+        "lessonId": 38917,
+        "title": "Feeding the Five Thousand",
+        "language": "en",
+        "organization": "Passion Movement",
+        "references": [
+          "MAT.14.13+MAT.14.14+MAT.14.15+MAT.14.16+MAT.14.17"
+        ],
+        "runtime": 142
+      },
+      {
+        "videoId": 53310,
+        "lessonId": 38916,
+        "title": "Consider the Future Glory",
+        "language": "en",
+        "organization": "YouVersion",
+        "references": [
+          "ROM.8.18"
+        ],
+        "runtime": 127
+      },
+      {
+        "videoId": 53123,
+        "lessonId": 38552,
+        "title": "Acércate a Dios hoy",
+        "language": "es",
+        "organization": "YouVersion",
+        "references": [
+          "ROM.8.18"
+        ],
+        "runtime": 58
+      },
+      {
+        "videoId": 52940,
+        "lessonId": 38746,
+        "title": "Sofrimento Redimido",
+        "language": "pt",
+        "organization": "YouVersion",
+        "references": [
+          "ROM.8.18"
+        ],
+        "runtime": 78
+      }
+    ],
+    "2026-06-25": [
+      {
+        "videoId": 52993,
+        "lessonId": 38898,
+        "title": "Nader as wat jy dink",
+        "language": "af",
+        "organization": "YouVersion",
+        "references": [
+          "PSA.34.18"
+        ],
+        "runtime": 114
+      },
+      {
+        "videoId": 50414,
+        "lessonId": 38481,
+        "title": "Thursday Night Prayers",
+        "language": "en",
+        "organization": "24-7 Prayer",
+        "references": [
+          "LAM.3.24"
+        ],
+        "runtime": 489
+      },
+      {
+        "videoId": 52822,
+        "lessonId": 38639,
+        "title": "The God Who Enters Our Suffering",
+        "language": "en",
+        "organization": "Bible Project",
+        "references": [
+          "PSA.34.18"
+        ],
+        "runtime": 125
+      },
+      {
+        "videoId": 53120,
+        "lessonId": 38731,
+        "title": "Closer Than You Think",
+        "language": "en",
+        "organization": "YouVersion",
+        "references": [
+          "PSA.34.18"
+        ],
+        "runtime": 118
+      },
+      {
+        "videoId": 53178,
+        "lessonId": 38940,
+        "title": "Misunderstanding Jesus",
+        "language": "en",
+        "organization": "Passion Movement",
+        "references": [
+          "MRK.7.24+MRK.7.25+MRK.7.26"
+        ],
+        "runtime": 135
+      },
+      {
+        "videoId": 52914,
+        "lessonId": 38535,
+        "title": "Acércate a Dios en esta temporada mundialista",
+        "language": "es",
+        "organization": "YouVersion",
+        "references": [
+          "PSA.34.18"
+        ],
+        "runtime": 45
+      },
+      {
+        "videoId": 53089,
+        "lessonId": 38747,
+        "title": "Mais Perto do que você Pensa",
+        "language": "pt",
+        "organization": "YouVersion",
+        "references": [
+          "PSA.34.18"
+        ],
+        "runtime": 51
+      }
+    ],
+    "2026-06-26": [
+      {
+        "videoId": 41090,
+        "lessonId": 38899,
+        "title": "Verander ons perspektiewe",
+        "language": "af",
+        "organization": "YouVersion",
+        "references": [
+          "COL.3.2"
+        ],
+        "runtime": 134
+      },
+      {
+        "videoId": 50415,
+        "lessonId": 38482,
+        "title": "Friday Night Prayers",
+        "language": "en",
+        "organization": "24-7 Prayer",
+        "references": [
+          "PSA.143.8"
+        ],
+        "runtime": 551
+      },
+      {
+        "videoId": 53068,
+        "lessonId": 38753,
+        "title": "Jesus Understands Your Pain",
+        "language": "en",
+        "organization": "Passion Movement",
+        "references": [
+          "2CO.1.3+2CO.1.4+2CO.1.5+2CO.1.6"
+        ],
+        "runtime": 178
+      },
+      {
+        "videoId": 53254,
+        "lessonId": 38904,
+        "title": "Look Up",
+        "language": "en",
+        "organization": "YouVersion",
+        "references": [
+          "COL.3.2"
+        ],
+        "runtime": 131
+      },
+      {
+        "videoId": 52915,
+        "lessonId": 38536,
+        "title": "Lee la Biblia en esta Copa del Mundo",
+        "language": "es",
+        "organization": "YouVersion",
+        "references": [
+          "COL.3.2"
+        ],
+        "runtime": 110
+      },
+      {
+        "videoId": 52943,
+        "lessonId": 38748,
+        "title": "Mudando as Nossas Perspectivas",
+        "language": "pt",
+        "organization": "YouVersion",
+        "references": [
+          "COL.3.2"
+        ],
+        "runtime": 162
+      }
+    ],
+    "2026-06-27": [
+      {
+        "videoId": 53007,
+        "lessonId": 38900,
+        "title": "Daaglikse oorgawe",
+        "language": "af",
+        "organization": "YouVersion",
+        "references": [
+          "JAS.4.7"
+        ],
+        "runtime": 79
+      },
+      {
+        "videoId": 50416,
+        "lessonId": 38483,
+        "title": "Saturday Night Prayers",
+        "language": "en",
+        "organization": "24-7 Prayer",
+        "references": [
+          "PSA.90.4"
+        ],
+        "runtime": 537
+      },
+      {
+        "videoId": 53265,
+        "lessonId": 38914,
+        "title": "Stand Firm",
+        "language": "en",
+        "organization": "YouVersion",
+        "references": [
+          "JAS.4.7"
+        ],
+        "runtime": 71
+      },
+      {
+        "videoId": 52916,
+        "lessonId": 38537,
+        "title": "Lee la Biblia hoy",
+        "language": "es",
+        "organization": "YouVersion",
+        "references": [
+          "JAS.4.7"
+        ],
+        "runtime": 135
+      },
+      {
+        "videoId": 53090,
+        "lessonId": 38749,
+        "title": "Submeter-se a Deus",
+        "language": "pt",
+        "organization": "YouVersion",
+        "references": [
+          "JAS.4.7"
+        ],
+        "runtime": 139
+      }
+    ],
+    "2026-06-28": [
+      {
+        "videoId": 53008,
+        "lessonId": 38901,
+        "title": "God se handewerk",
+        "language": "af",
+        "organization": "YouVersion",
+        "references": [
+          "EPH.2.10"
+        ],
+        "runtime": 90
+      },
+      {
+        "videoId": 50417,
+        "lessonId": 38484,
+        "title": "Sunday Night Prayers",
+        "language": "en",
+        "organization": "24-7 Prayer",
+        "references": [
+          "JHN.1.5"
+        ],
+        "runtime": 513
+      },
+      {
+        "videoId": 53264,
+        "lessonId": 38911,
+        "title": "You Were Made for This",
+        "language": "en",
+        "organization": "YouVersion",
+        "references": [
+          "EPH.2.10"
+        ],
+        "runtime": 93
+      },
+      {
+        "videoId": 52917,
+        "lessonId": 38538,
+        "title": "Lee la Biblia en esta Copa del Mundo",
+        "language": "es",
+        "organization": "YouVersion",
+        "references": [
+          "EPH.2.10"
+        ],
+        "runtime": 64
+      },
+      {
+        "videoId": 52944,
+        "lessonId": 38750,
+        "title": "Parte do Plano",
+        "language": "pt",
+        "organization": "YouVersion",
+        "references": [
+          "EPH.2.10"
+        ],
+        "runtime": 135
+      }
+    ],
+    "2026-06-29": [
+      {
+        "videoId": 53013,
+        "lessonId": 38902,
+        "title": "Die Koning laat jou veilig woon",
+        "language": "af",
+        "organization": "YouVersion",
+        "references": [
+          "PSA.4.8"
+        ],
+        "runtime": 108
+      },
+      {
+        "videoId": 50450,
+        "lessonId": 38485,
+        "title": "Monday Night Prayers",
+        "language": "en",
+        "organization": "24-7 Prayer",
+        "references": [
+          "PSA.116.7"
+        ],
+        "runtime": 553
+      },
+      {
+        "videoId": 53102,
+        "lessonId": 38752,
+        "title": "Fired Up To Share the Word",
+        "language": "en",
+        "organization": "Passion Movement",
+        "references": [
+          "JER.20.7+JER.20.8+JER.20.9"
+        ],
+        "runtime": 162
+      },
+      {
+        "videoId": 53121,
+        "lessonId": 38732,
+        "title": "Peace for Your Soul",
+        "language": "en",
+        "organization": "YouVersion",
+        "references": [
+          "PSA.4.8"
+        ],
+        "runtime": 123
+      },
+      {
+        "videoId": 52918,
+        "lessonId": 38539,
+        "title": "Lee la Biblia en esta Copa del Mundo",
+        "language": "es",
+        "organization": "YouVersion",
+        "references": [
+          "PSA.4.8"
+        ],
+        "runtime": 102
+      },
+      {
+        "videoId": 53114,
+        "lessonId": 38751,
+        "title": "A Paz de Deus",
+        "language": "pt",
+        "organization": "YouVersion",
+        "references": [
+          "PSA.4.8"
+        ],
+        "runtime": 138
+      }
+    ],
+    "2026-06-30": [
+      {
+        "videoId": 47481,
+        "lessonId": 38903,
+        "title": "’n Nuwe manier van lewe",
+        "language": "af",
+        "organization": "YouVersion",
+        "references": [
+          "LUK.6.28"
+        ],
+        "runtime": 138
+      },
+      {
+        "videoId": 50451,
+        "lessonId": 38486,
+        "title": "Tuesday Night Prayers",
+        "language": "en",
+        "organization": "24-7 Prayer",
+        "references": [
+          "PSA.42.8"
+        ],
+        "runtime": 487
+      },
+      {
+        "videoId": 53177,
+        "lessonId": 38941,
+        "title": "The Hour of Christ",
+        "language": "en",
+        "organization": "Passion Movement",
+        "references": [
+          "JHN.2.1+JHN.2.2+JHN.2.3+JHN.2.4+JHN.2.5"
+        ],
+        "runtime": 167
+      },
+      {
+        "videoId": 53255,
+        "lessonId": 38905,
+        "title": "An Unexpected Blessing",
+        "language": "en",
+        "organization": "YouVersion",
+        "references": [
+          "LUK.6.28"
+        ],
+        "runtime": 92
+      },
+      {
+        "videoId": 48578,
+        "lessonId": 38948,
+        "title": "Lee la Biblia hoy",
+        "language": "es",
+        "organization": "YouVersion",
+        "references": [
+          "LUK.6.28"
+        ],
+        "runtime": 139
+      },
+      {
+        "videoId": 52962,
+        "lessonId": 38949,
+        "title": "Orar por Quem?",
+        "language": "pt",
+        "organization": "YouVersion",
+        "references": [
+          "LUK.6.28"
+        ],
+        "runtime": 116
+      }
+    ],
+    "2026-07-01": [
+      {
+        "videoId": 50452,
+        "lessonId": 38487,
+        "title": "Wednesday Night Prayers",
+        "language": "en",
+        "organization": "24-7 Prayer",
+        "references": [
+          "LAM.3.22+LAM.3.23"
+        ],
+        "runtime": 509
+      },
+      {
+        "videoId": 53175,
+        "lessonId": 38942,
+        "title": "Can Wealth Gained Wrongfully Truly Last?",
+        "language": "en",
+        "organization": "Passion Movement",
+        "references": [
+          "PRO.1.10+PRO.1.11+PRO.1.12+PRO.1.13+PRO.1.14"
+        ],
+        "runtime": 146
+      },
+      {
+        "videoId": 53257,
+        "lessonId": 38906,
+        "title": "Prayer for Real Life",
+        "language": "en",
+        "organization": "YouVersion",
+        "references": [
+          "ROM.12.12"
+        ],
+        "runtime": 119
+      },
+      {
+        "videoId": 52998,
+        "lessonId": 38950,
+        "title": "Alegres na Esperança",
+        "language": "pt",
+        "organization": "YouVersion",
+        "references": [
+          "ROM.12.12"
+        ],
+        "runtime": 131
+      }
+    ],
+    "2026-07-02": [
+      {
+        "videoId": 50453,
+        "lessonId": 38488,
+        "title": "Thursday Night Prayers",
+        "language": "en",
+        "organization": "24-7 Prayer",
+        "references": [
+          "LAM.3.24"
+        ],
+        "runtime": 470
+      },
+      {
+        "videoId": 53179,
+        "lessonId": 38943,
+        "title": "The Pearl of Great Value",
+        "language": "en",
+        "organization": "Passion Movement",
+        "references": [
+          "PRO.3.13+PRO.3.14+PRO.3.15+PRO.3.16+PRO.3.17+PRO.3.18"
+        ],
+        "runtime": 151
+      },
+      {
+        "videoId": 53258,
+        "lessonId": 38907,
+        "title": "The Eternal Rock",
+        "language": "en",
+        "organization": "YouVersion",
+        "references": [
+          "ISA.26.4"
+        ],
+        "runtime": 119
+      }
+    ]
+  }
+}

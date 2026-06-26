@@ -1,0 +1,1320 @@
+{
+  "source": "YV Eden Brand Library (Figma) — official exports",
+  "apps": [
+    {
+      "id": "bible-app",
+      "name": "Bible App",
+      "styles": [
+        {
+          "id": "icon-only",
+          "name": "Icon Only",
+          "count": 66,
+          "icons": [
+            {
+              "lang": "af",
+              "name": "Afrikaans",
+              "path": "/assets/icons/bible-app/icon-only/af.png"
+            },
+            {
+              "lang": "ar",
+              "name": "Arabic",
+              "path": "/assets/icons/bible-app/icon-only/ar.png"
+            },
+            {
+              "lang": "be",
+              "name": "Belarusian",
+              "path": "/assets/icons/bible-app/icon-only/be.png"
+            },
+            {
+              "lang": "bg",
+              "name": "Bulgarian",
+              "path": "/assets/icons/bible-app/icon-only/bg.png"
+            },
+            {
+              "lang": "ca",
+              "name": "Catalan",
+              "path": "/assets/icons/bible-app/icon-only/ca.png"
+            },
+            {
+              "lang": "cs",
+              "name": "Czech",
+              "path": "/assets/icons/bible-app/icon-only/cs.png"
+            },
+            {
+              "lang": "cy",
+              "name": "Welsh",
+              "path": "/assets/icons/bible-app/icon-only/cy.png"
+            },
+            {
+              "lang": "da",
+              "name": "Danish",
+              "path": "/assets/icons/bible-app/icon-only/da.png"
+            },
+            {
+              "lang": "de",
+              "name": "German",
+              "path": "/assets/icons/bible-app/icon-only/de.svg"
+            },
+            {
+              "lang": "el",
+              "name": "Greek",
+              "path": "/assets/icons/bible-app/icon-only/el.png"
+            },
+            {
+              "lang": "en",
+              "name": "English",
+              "path": "/assets/icons/bible-app/icon-only/en.svg"
+            },
+            {
+              "lang": "es-LA",
+              "name": "Spanish (Latin America)",
+              "path": "/assets/icons/bible-app/icon-only/es-LA.svg"
+            },
+            {
+              "lang": "es",
+              "name": "Spanish (Spain)",
+              "path": "/assets/icons/bible-app/icon-only/es.png"
+            },
+            {
+              "lang": "fa",
+              "name": "Persian",
+              "path": "/assets/icons/bible-app/icon-only/fa.png"
+            },
+            {
+              "lang": "fi",
+              "name": "Finnish",
+              "path": "/assets/icons/bible-app/icon-only/fi.svg"
+            },
+            {
+              "lang": "fl",
+              "name": "Filipino (Tagalog)",
+              "path": "/assets/icons/bible-app/icon-only/fl.png"
+            },
+            {
+              "lang": "fr",
+              "name": "French",
+              "path": "/assets/icons/bible-app/icon-only/fr.png"
+            },
+            {
+              "lang": "hi",
+              "name": "Hindi",
+              "path": "/assets/icons/bible-app/icon-only/hi.png"
+            },
+            {
+              "lang": "hr",
+              "name": "Croatian",
+              "path": "/assets/icons/bible-app/icon-only/hr.png"
+            },
+            {
+              "lang": "ht",
+              "name": "Haitian Creole",
+              "path": "/assets/icons/bible-app/icon-only/ht.png"
+            },
+            {
+              "lang": "hu",
+              "name": "Hungarian",
+              "path": "/assets/icons/bible-app/icon-only/hu.png"
+            },
+            {
+              "lang": "hy",
+              "name": "Armenian",
+              "path": "/assets/icons/bible-app/icon-only/hy.png"
+            },
+            {
+              "lang": "id",
+              "name": "Indonesian",
+              "path": "/assets/icons/bible-app/icon-only/id.png"
+            },
+            {
+              "lang": "ig",
+              "name": "Igbo",
+              "path": "/assets/icons/bible-app/icon-only/ig.png"
+            },
+            {
+              "lang": "is",
+              "name": "Icelandic",
+              "path": "/assets/icons/bible-app/icon-only/is.png"
+            },
+            {
+              "lang": "it",
+              "name": "Italian",
+              "path": "/assets/icons/bible-app/icon-only/it.png"
+            },
+            {
+              "lang": "ja",
+              "name": "Japanese",
+              "path": "/assets/icons/bible-app/icon-only/ja.png"
+            },
+            {
+              "lang": "km",
+              "name": "Khmer",
+              "path": "/assets/icons/bible-app/icon-only/km.png"
+            },
+            {
+              "lang": "kor",
+              "name": "Korean",
+              "path": "/assets/icons/bible-app/icon-only/kor.png"
+            },
+            {
+              "lang": "ku",
+              "name": "Kurdish (Sorani)",
+              "path": "/assets/icons/bible-app/icon-only/ku.png"
+            },
+            {
+              "lang": "lt",
+              "name": "Lithuanian",
+              "path": "/assets/icons/bible-app/icon-only/lt.png"
+            },
+            {
+              "lang": "lv",
+              "name": "Latvian",
+              "path": "/assets/icons/bible-app/icon-only/lv.png"
+            },
+            {
+              "lang": "mk",
+              "name": "Macedonian",
+              "path": "/assets/icons/bible-app/icon-only/mk.png"
+            },
+            {
+              "lang": "ml",
+              "name": "Malayalam",
+              "path": "/assets/icons/bible-app/icon-only/ml.png"
+            },
+            {
+              "lang": "mn",
+              "name": "Mongolian",
+              "path": "/assets/icons/bible-app/icon-only/mn.png"
+            },
+            {
+              "lang": "ms",
+              "name": "Malay",
+              "path": "/assets/icons/bible-app/icon-only/ms.png"
+            },
+            {
+              "lang": "my-mm",
+              "name": "Burmese (Myanmar)",
+              "path": "/assets/icons/bible-app/icon-only/my-mm.png"
+            },
+            {
+              "lang": "my",
+              "name": "Burmese",
+              "path": "/assets/icons/bible-app/icon-only/my.png"
+            },
+            {
+              "lang": "ne-NP",
+              "name": "Nepali",
+              "path": "/assets/icons/bible-app/icon-only/ne-NP.png"
+            },
+            {
+              "lang": "nl",
+              "name": "Dutch",
+              "path": "/assets/icons/bible-app/icon-only/nl.png"
+            },
+            {
+              "lang": "no",
+              "name": "Norwegian",
+              "path": "/assets/icons/bible-app/icon-only/no.png"
+            },
+            {
+              "lang": "pl",
+              "name": "Polish",
+              "path": "/assets/icons/bible-app/icon-only/pl.png"
+            },
+            {
+              "lang": "pt-BR",
+              "name": "Portuguese (Brazil)",
+              "path": "/assets/icons/bible-app/icon-only/pt-BR.svg"
+            },
+            {
+              "lang": "pt-PT",
+              "name": "Portuguese (Portugal)",
+              "path": "/assets/icons/bible-app/icon-only/pt-PT.png"
+            },
+            {
+              "lang": "ro",
+              "name": "Romanian",
+              "path": "/assets/icons/bible-app/icon-only/ro.png"
+            },
+            {
+              "lang": "ru",
+              "name": "Russian",
+              "path": "/assets/icons/bible-app/icon-only/ru.png"
+            },
+            {
+              "lang": "sk",
+              "name": "Slovak",
+              "path": "/assets/icons/bible-app/icon-only/sk.png"
+            },
+            {
+              "lang": "sl",
+              "name": "Slovenian",
+              "path": "/assets/icons/bible-app/icon-only/sl.png"
+            },
+            {
+              "lang": "sn",
+              "name": "Shona",
+              "path": "/assets/icons/bible-app/icon-only/sn.png"
+            },
+            {
+              "lang": "sq",
+              "name": "Albanian",
+              "path": "/assets/icons/bible-app/icon-only/sq.png"
+            },
+            {
+              "lang": "srp-cyrl",
+              "name": "Serbian (Cyrillic)",
+              "path": "/assets/icons/bible-app/icon-only/srp-cyrl.png"
+            },
+            {
+              "lang": "srp-latn",
+              "name": "Serbian (Latin)",
+              "path": "/assets/icons/bible-app/icon-only/srp-latn.png"
+            },
+            {
+              "lang": "sv",
+              "name": "Swedish",
+              "path": "/assets/icons/bible-app/icon-only/sv.png"
+            },
+            {
+              "lang": "sw",
+              "name": "Swahili",
+              "path": "/assets/icons/bible-app/icon-only/sw.png"
+            },
+            {
+              "lang": "ta",
+              "name": "Tamil",
+              "path": "/assets/icons/bible-app/icon-only/ta.png"
+            },
+            {
+              "lang": "te",
+              "name": "Telugu",
+              "path": "/assets/icons/bible-app/icon-only/te.png"
+            },
+            {
+              "lang": "th",
+              "name": "Thai",
+              "path": "/assets/icons/bible-app/icon-only/th.png"
+            },
+            {
+              "lang": "tr",
+              "name": "Turkish",
+              "path": "/assets/icons/bible-app/icon-only/tr.png"
+            },
+            {
+              "lang": "uk",
+              "name": "Ukrainian",
+              "path": "/assets/icons/bible-app/icon-only/uk.png"
+            },
+            {
+              "lang": "ur",
+              "name": "Urdu",
+              "path": "/assets/icons/bible-app/icon-only/ur.png"
+            },
+            {
+              "lang": "vi",
+              "name": "Vietnamese",
+              "path": "/assets/icons/bible-app/icon-only/vi.png"
+            },
+            {
+              "lang": "yo",
+              "name": "Yoruba",
+              "path": "/assets/icons/bible-app/icon-only/yo.png"
+            },
+            {
+              "lang": "zh-CN",
+              "name": "Chinese (Simplified)",
+              "path": "/assets/icons/bible-app/icon-only/zh-CN.png"
+            },
+            {
+              "lang": "zh-HK",
+              "name": "Chinese (Traditional, Hong Kong)",
+              "path": "/assets/icons/bible-app/icon-only/zh-HK.png"
+            },
+            {
+              "lang": "zh-TW",
+              "name": "Chinese (Traditional)",
+              "path": "/assets/icons/bible-app/icon-only/zh-TW.png"
+            },
+            {
+              "lang": "zu",
+              "name": "Zulu",
+              "path": "/assets/icons/bible-app/icon-only/zu.png"
+            }
+          ]
+        },
+        {
+          "id": "logo-light",
+          "name": "Logo Light",
+          "count": 66,
+          "icons": [
+            {
+              "lang": "af",
+              "name": "Afrikaans",
+              "path": "/assets/icons/bible-app/logo-light/af.png"
+            },
+            {
+              "lang": "ar",
+              "name": "Arabic",
+              "path": "/assets/icons/bible-app/logo-light/ar.png"
+            },
+            {
+              "lang": "be",
+              "name": "Belarusian",
+              "path": "/assets/icons/bible-app/logo-light/be.png"
+            },
+            {
+              "lang": "bg",
+              "name": "Bulgarian",
+              "path": "/assets/icons/bible-app/logo-light/bg.png"
+            },
+            {
+              "lang": "ca",
+              "name": "Catalan",
+              "path": "/assets/icons/bible-app/logo-light/ca.png"
+            },
+            {
+              "lang": "cs",
+              "name": "Czech",
+              "path": "/assets/icons/bible-app/logo-light/cs.png"
+            },
+            {
+              "lang": "cy",
+              "name": "Welsh",
+              "path": "/assets/icons/bible-app/logo-light/cy.png"
+            },
+            {
+              "lang": "da",
+              "name": "Danish",
+              "path": "/assets/icons/bible-app/logo-light/da.png"
+            },
+            {
+              "lang": "de",
+              "name": "German",
+              "path": "/assets/icons/bible-app/logo-light/de.png"
+            },
+            {
+              "lang": "el",
+              "name": "Greek",
+              "path": "/assets/icons/bible-app/logo-light/el.png"
+            },
+            {
+              "lang": "en",
+              "name": "English",
+              "path": "/assets/icons/bible-app/logo-light/en.png"
+            },
+            {
+              "lang": "es-LA",
+              "name": "Spanish (Latin America)",
+              "path": "/assets/icons/bible-app/logo-light/es-LA.png"
+            },
+            {
+              "lang": "es",
+              "name": "Spanish (Spain)",
+              "path": "/assets/icons/bible-app/logo-light/es.png"
+            },
+            {
+              "lang": "fa",
+              "name": "Persian",
+              "path": "/assets/icons/bible-app/logo-light/fa.png"
+            },
+            {
+              "lang": "fi",
+              "name": "Finnish",
+              "path": "/assets/icons/bible-app/logo-light/fi.png"
+            },
+            {
+              "lang": "fl",
+              "name": "Filipino (Tagalog)",
+              "path": "/assets/icons/bible-app/logo-light/fl.png"
+            },
+            {
+              "lang": "fr",
+              "name": "French",
+              "path": "/assets/icons/bible-app/logo-light/fr.png"
+            },
+            {
+              "lang": "hi",
+              "name": "Hindi",
+              "path": "/assets/icons/bible-app/logo-light/hi.png"
+            },
+            {
+              "lang": "hr",
+              "name": "Croatian",
+              "path": "/assets/icons/bible-app/logo-light/hr.png"
+            },
+            {
+              "lang": "ht",
+              "name": "Haitian Creole",
+              "path": "/assets/icons/bible-app/logo-light/ht.png"
+            },
+            {
+              "lang": "hu",
+              "name": "Hungarian",
+              "path": "/assets/icons/bible-app/logo-light/hu.png"
+            },
+            {
+              "lang": "hy",
+              "name": "Armenian",
+              "path": "/assets/icons/bible-app/logo-light/hy.png"
+            },
+            {
+              "lang": "id",
+              "name": "Indonesian",
+              "path": "/assets/icons/bible-app/logo-light/id.png"
+            },
+            {
+              "lang": "ig",
+              "name": "Igbo",
+              "path": "/assets/icons/bible-app/logo-light/ig.png"
+            },
+            {
+              "lang": "is",
+              "name": "Icelandic",
+              "path": "/assets/icons/bible-app/logo-light/is.png"
+            },
+            {
+              "lang": "it",
+              "name": "Italian",
+              "path": "/assets/icons/bible-app/logo-light/it.png"
+            },
+            {
+              "lang": "ja",
+              "name": "Japanese",
+              "path": "/assets/icons/bible-app/logo-light/ja.png"
+            },
+            {
+              "lang": "km",
+              "name": "Khmer",
+              "path": "/assets/icons/bible-app/logo-light/km.png"
+            },
+            {
+              "lang": "kor",
+              "name": "Korean",
+              "path": "/assets/icons/bible-app/logo-light/kor.png"
+            },
+            {
+              "lang": "ku",
+              "name": "Kurdish (Sorani)",
+              "path": "/assets/icons/bible-app/logo-light/ku.png"
+            },
+            {
+              "lang": "lt",
+              "name": "Lithuanian",
+              "path": "/assets/icons/bible-app/logo-light/lt.png"
+            },
+            {
+              "lang": "lv",
+              "name": "Latvian",
+              "path": "/assets/icons/bible-app/logo-light/lv.png"
+            },
+            {
+              "lang": "mk",
+              "name": "Macedonian",
+              "path": "/assets/icons/bible-app/logo-light/mk.png"
+            },
+            {
+              "lang": "ml",
+              "name": "Malayalam",
+              "path": "/assets/icons/bible-app/logo-light/ml.png"
+            },
+            {
+              "lang": "mn",
+              "name": "Mongolian",
+              "path": "/assets/icons/bible-app/logo-light/mn.png"
+            },
+            {
+              "lang": "ms",
+              "name": "Malay",
+              "path": "/assets/icons/bible-app/logo-light/ms.png"
+            },
+            {
+              "lang": "my-mm",
+              "name": "Burmese (Myanmar)",
+              "path": "/assets/icons/bible-app/logo-light/my-mm.png"
+            },
+            {
+              "lang": "my",
+              "name": "Burmese",
+              "path": "/assets/icons/bible-app/logo-light/my.png"
+            },
+            {
+              "lang": "ne-NP",
+              "name": "Nepali",
+              "path": "/assets/icons/bible-app/logo-light/ne-NP.png"
+            },
+            {
+              "lang": "nl",
+              "name": "Dutch",
+              "path": "/assets/icons/bible-app/logo-light/nl.png"
+            },
+            {
+              "lang": "no",
+              "name": "Norwegian",
+              "path": "/assets/icons/bible-app/logo-light/no.png"
+            },
+            {
+              "lang": "pl",
+              "name": "Polish",
+              "path": "/assets/icons/bible-app/logo-light/pl.png"
+            },
+            {
+              "lang": "pt-BR",
+              "name": "Portuguese (Brazil)",
+              "path": "/assets/icons/bible-app/logo-light/pt-BR.png"
+            },
+            {
+              "lang": "pt-PT",
+              "name": "Portuguese (Portugal)",
+              "path": "/assets/icons/bible-app/logo-light/pt-PT.png"
+            },
+            {
+              "lang": "ro",
+              "name": "Romanian",
+              "path": "/assets/icons/bible-app/logo-light/ro.png"
+            },
+            {
+              "lang": "ru",
+              "name": "Russian",
+              "path": "/assets/icons/bible-app/logo-light/ru.png"
+            },
+            {
+              "lang": "sk",
+              "name": "Slovak",
+              "path": "/assets/icons/bible-app/logo-light/sk.png"
+            },
+            {
+              "lang": "sl",
+              "name": "Slovenian",
+              "path": "/assets/icons/bible-app/logo-light/sl.png"
+            },
+            {
+              "lang": "sn",
+              "name": "Shona",
+              "path": "/assets/icons/bible-app/logo-light/sn.png"
+            },
+            {
+              "lang": "sq",
+              "name": "Albanian",
+              "path": "/assets/icons/bible-app/logo-light/sq.png"
+            },
+            {
+              "lang": "srp-cyrl",
+              "name": "Serbian (Cyrillic)",
+              "path": "/assets/icons/bible-app/logo-light/srp-cyrl.png"
+            },
+            {
+              "lang": "srp-latn",
+              "name": "Serbian (Latin)",
+              "path": "/assets/icons/bible-app/logo-light/srp-latn.png"
+            },
+            {
+              "lang": "sv",
+              "name": "Swedish",
+              "path": "/assets/icons/bible-app/logo-light/sv.png"
+            },
+            {
+              "lang": "sw",
+              "name": "Swahili",
+              "path": "/assets/icons/bible-app/logo-light/sw.png"
+            },
+            {
+              "lang": "ta",
+              "name": "Tamil",
+              "path": "/assets/icons/bible-app/logo-light/ta.png"
+            },
+            {
+              "lang": "te",
+              "name": "Telugu",
+              "path": "/assets/icons/bible-app/logo-light/te.png"
+            },
+            {
+              "lang": "th",
+              "name": "Thai",
+              "path": "/assets/icons/bible-app/logo-light/th.png"
+            },
+            {
+              "lang": "tr",
+              "name": "Turkish",
+              "path": "/assets/icons/bible-app/logo-light/tr.png"
+            },
+            {
+              "lang": "uk",
+              "name": "Ukrainian",
+              "path": "/assets/icons/bible-app/logo-light/uk.png"
+            },
+            {
+              "lang": "ur",
+              "name": "Urdu",
+              "path": "/assets/icons/bible-app/logo-light/ur.png"
+            },
+            {
+              "lang": "vi",
+              "name": "Vietnamese",
+              "path": "/assets/icons/bible-app/logo-light/vi.png"
+            },
+            {
+              "lang": "yo",
+              "name": "Yoruba",
+              "path": "/assets/icons/bible-app/logo-light/yo.png"
+            },
+            {
+              "lang": "zh-CN",
+              "name": "Chinese (Simplified)",
+              "path": "/assets/icons/bible-app/logo-light/zh-CN.png"
+            },
+            {
+              "lang": "zh-HK",
+              "name": "Chinese (Traditional, Hong Kong)",
+              "path": "/assets/icons/bible-app/logo-light/zh-HK.png"
+            },
+            {
+              "lang": "zh-TW",
+              "name": "Chinese (Traditional)",
+              "path": "/assets/icons/bible-app/logo-light/zh-TW.png"
+            },
+            {
+              "lang": "zu",
+              "name": "Zulu",
+              "path": "/assets/icons/bible-app/logo-light/zu.png"
+            }
+          ]
+        },
+        {
+          "id": "logo-dark",
+          "name": "Logo Dark",
+          "count": 64,
+          "icons": [
+            {
+              "lang": "af",
+              "name": "Afrikaans",
+              "path": "/assets/icons/bible-app/logo-dark/af.png"
+            },
+            {
+              "lang": "ar",
+              "name": "Arabic",
+              "path": "/assets/icons/bible-app/logo-dark/ar.png"
+            },
+            {
+              "lang": "be",
+              "name": "Belarusian",
+              "path": "/assets/icons/bible-app/logo-dark/be.png"
+            },
+            {
+              "lang": "bg",
+              "name": "Bulgarian",
+              "path": "/assets/icons/bible-app/logo-dark/bg.png"
+            },
+            {
+              "lang": "ca",
+              "name": "Catalan",
+              "path": "/assets/icons/bible-app/logo-dark/ca.png"
+            },
+            {
+              "lang": "cs",
+              "name": "Czech",
+              "path": "/assets/icons/bible-app/logo-dark/cs.png"
+            },
+            {
+              "lang": "cy",
+              "name": "Welsh",
+              "path": "/assets/icons/bible-app/logo-dark/cy.png"
+            },
+            {
+              "lang": "da",
+              "name": "Danish",
+              "path": "/assets/icons/bible-app/logo-dark/da.png"
+            },
+            {
+              "lang": "de",
+              "name": "German",
+              "path": "/assets/icons/bible-app/logo-dark/de.jpg"
+            },
+            {
+              "lang": "el",
+              "name": "Greek",
+              "path": "/assets/icons/bible-app/logo-dark/el.png"
+            },
+            {
+              "lang": "en",
+              "name": "English",
+              "path": "/assets/icons/bible-app/logo-dark/en.png"
+            },
+            {
+              "lang": "es-LA",
+              "name": "Spanish (Latin America)",
+              "path": "/assets/icons/bible-app/logo-dark/es-LA.png"
+            },
+            {
+              "lang": "es",
+              "name": "Spanish (Spain)",
+              "path": "/assets/icons/bible-app/logo-dark/es.png"
+            },
+            {
+              "lang": "fa",
+              "name": "Persian",
+              "path": "/assets/icons/bible-app/logo-dark/fa.png"
+            },
+            {
+              "lang": "fi",
+              "name": "Finnish",
+              "path": "/assets/icons/bible-app/logo-dark/fi.png"
+            },
+            {
+              "lang": "fl",
+              "name": "Filipino (Tagalog)",
+              "path": "/assets/icons/bible-app/logo-dark/fl.png"
+            },
+            {
+              "lang": "fr",
+              "name": "French",
+              "path": "/assets/icons/bible-app/logo-dark/fr.png"
+            },
+            {
+              "lang": "hi",
+              "name": "Hindi",
+              "path": "/assets/icons/bible-app/logo-dark/hi.png"
+            },
+            {
+              "lang": "hr",
+              "name": "Croatian",
+              "path": "/assets/icons/bible-app/logo-dark/hr.png"
+            },
+            {
+              "lang": "ht",
+              "name": "Haitian Creole",
+              "path": "/assets/icons/bible-app/logo-dark/ht.png"
+            },
+            {
+              "lang": "hu",
+              "name": "Hungarian",
+              "path": "/assets/icons/bible-app/logo-dark/hu.png"
+            },
+            {
+              "lang": "hy",
+              "name": "Armenian",
+              "path": "/assets/icons/bible-app/logo-dark/hy.png"
+            },
+            {
+              "lang": "id",
+              "name": "Indonesian",
+              "path": "/assets/icons/bible-app/logo-dark/id.png"
+            },
+            {
+              "lang": "ig",
+              "name": "Igbo",
+              "path": "/assets/icons/bible-app/logo-dark/ig.png"
+            },
+            {
+              "lang": "is",
+              "name": "Icelandic",
+              "path": "/assets/icons/bible-app/logo-dark/is.png"
+            },
+            {
+              "lang": "ja",
+              "name": "Japanese",
+              "path": "/assets/icons/bible-app/logo-dark/ja.png"
+            },
+            {
+              "lang": "km",
+              "name": "Khmer",
+              "path": "/assets/icons/bible-app/logo-dark/km.png"
+            },
+            {
+              "lang": "kor",
+              "name": "Korean",
+              "path": "/assets/icons/bible-app/logo-dark/kor.png"
+            },
+            {
+              "lang": "ku",
+              "name": "Kurdish (Sorani)",
+              "path": "/assets/icons/bible-app/logo-dark/ku.png"
+            },
+            {
+              "lang": "lt",
+              "name": "Lithuanian",
+              "path": "/assets/icons/bible-app/logo-dark/lt.png"
+            },
+            {
+              "lang": "lv",
+              "name": "Latvian",
+              "path": "/assets/icons/bible-app/logo-dark/lv.png"
+            },
+            {
+              "lang": "mk",
+              "name": "Macedonian",
+              "path": "/assets/icons/bible-app/logo-dark/mk.png"
+            },
+            {
+              "lang": "ml",
+              "name": "Malayalam",
+              "path": "/assets/icons/bible-app/logo-dark/ml.png"
+            },
+            {
+              "lang": "mn",
+              "name": "Mongolian",
+              "path": "/assets/icons/bible-app/logo-dark/mn.png"
+            },
+            {
+              "lang": "ms",
+              "name": "Malay",
+              "path": "/assets/icons/bible-app/logo-dark/ms.png"
+            },
+            {
+              "lang": "my-mm",
+              "name": "Burmese (Myanmar)",
+              "path": "/assets/icons/bible-app/logo-dark/my-mm.png"
+            },
+            {
+              "lang": "my",
+              "name": "Burmese",
+              "path": "/assets/icons/bible-app/logo-dark/my.png"
+            },
+            {
+              "lang": "ne-NP",
+              "name": "Nepali",
+              "path": "/assets/icons/bible-app/logo-dark/ne-NP.png"
+            },
+            {
+              "lang": "nl",
+              "name": "Dutch",
+              "path": "/assets/icons/bible-app/logo-dark/nl.png"
+            },
+            {
+              "lang": "no",
+              "name": "Norwegian",
+              "path": "/assets/icons/bible-app/logo-dark/no.png"
+            },
+            {
+              "lang": "pl",
+              "name": "Polish",
+              "path": "/assets/icons/bible-app/logo-dark/pl.png"
+            },
+            {
+              "lang": "pt-BR",
+              "name": "Portuguese (Brazil)",
+              "path": "/assets/icons/bible-app/logo-dark/pt-BR.png"
+            },
+            {
+              "lang": "pt-PT",
+              "name": "Portuguese (Portugal)",
+              "path": "/assets/icons/bible-app/logo-dark/pt-PT.png"
+            },
+            {
+              "lang": "ro",
+              "name": "Romanian",
+              "path": "/assets/icons/bible-app/logo-dark/ro.png"
+            },
+            {
+              "lang": "ru",
+              "name": "Russian",
+              "path": "/assets/icons/bible-app/logo-dark/ru.png"
+            },
+            {
+              "lang": "sk",
+              "name": "Slovak",
+              "path": "/assets/icons/bible-app/logo-dark/sk.png"
+            },
+            {
+              "lang": "sl",
+              "name": "Slovenian",
+              "path": "/assets/icons/bible-app/logo-dark/sl.png"
+            },
+            {
+              "lang": "sn",
+              "name": "Shona",
+              "path": "/assets/icons/bible-app/logo-dark/sn.png"
+            },
+            {
+              "lang": "sq",
+              "name": "Albanian",
+              "path": "/assets/icons/bible-app/logo-dark/sq.png"
+            },
+            {
+              "lang": "srp-cyrl",
+              "name": "Serbian (Cyrillic)",
+              "path": "/assets/icons/bible-app/logo-dark/srp-cyrl.png"
+            },
+            {
+              "lang": "srp-latn",
+              "name": "Serbian (Latin)",
+              "path": "/assets/icons/bible-app/logo-dark/srp-latn.png"
+            },
+            {
+              "lang": "sv",
+              "name": "Swedish",
+              "path": "/assets/icons/bible-app/logo-dark/sv.png"
+            },
+            {
+              "lang": "sw",
+              "name": "Swahili",
+              "path": "/assets/icons/bible-app/logo-dark/sw.png"
+            },
+            {
+              "lang": "ta",
+              "name": "Tamil",
+              "path": "/assets/icons/bible-app/logo-dark/ta.png"
+            },
+            {
+              "lang": "te",
+              "name": "Telugu",
+              "path": "/assets/icons/bible-app/logo-dark/te.png"
+            },
+            {
+              "lang": "th",
+              "name": "Thai",
+              "path": "/assets/icons/bible-app/logo-dark/th.png"
+            },
+            {
+              "lang": "tr",
+              "name": "Turkish",
+              "path": "/assets/icons/bible-app/logo-dark/tr.png"
+            },
+            {
+              "lang": "uk",
+              "name": "Ukrainian",
+              "path": "/assets/icons/bible-app/logo-dark/uk.png"
+            },
+            {
+              "lang": "ur",
+              "name": "Urdu",
+              "path": "/assets/icons/bible-app/logo-dark/ur.png"
+            },
+            {
+              "lang": "vi",
+              "name": "Vietnamese",
+              "path": "/assets/icons/bible-app/logo-dark/vi.png"
+            },
+            {
+              "lang": "yo",
+              "name": "Yoruba",
+              "path": "/assets/icons/bible-app/logo-dark/yo.png"
+            },
+            {
+              "lang": "zh-CN",
+              "name": "Chinese (Simplified)",
+              "path": "/assets/icons/bible-app/logo-dark/zh-CN.png"
+            },
+            {
+              "lang": "zh-HK",
+              "name": "Chinese (Traditional, Hong Kong)",
+              "path": "/assets/icons/bible-app/logo-dark/zh-HK.png"
+            },
+            {
+              "lang": "zh-TW",
+              "name": "Chinese (Traditional)",
+              "path": "/assets/icons/bible-app/logo-dark/zh-TW.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bible-app-lite",
+      "name": "Bible App Lite",
+      "styles": [
+        {
+          "id": "icon-only",
+          "name": "Icon Only",
+          "count": 59,
+          "icons": [
+            {
+              "lang": "af",
+              "name": "Afrikaans",
+              "path": "/assets/icons/bible-app-lite/icon-only/af.svg"
+            },
+            {
+              "lang": "ar",
+              "name": "Arabic",
+              "path": "/assets/icons/bible-app-lite/icon-only/ar.svg"
+            },
+            {
+              "lang": "be",
+              "name": "Belarusian",
+              "path": "/assets/icons/bible-app-lite/icon-only/be.svg"
+            },
+            {
+              "lang": "bg",
+              "name": "Bulgarian",
+              "path": "/assets/icons/bible-app-lite/icon-only/bg.svg"
+            },
+            {
+              "lang": "ca",
+              "name": "Catalan",
+              "path": "/assets/icons/bible-app-lite/icon-only/ca.svg"
+            },
+            {
+              "lang": "cs",
+              "name": "Czech",
+              "path": "/assets/icons/bible-app-lite/icon-only/cs.svg"
+            },
+            {
+              "lang": "cy",
+              "name": "Welsh",
+              "path": "/assets/icons/bible-app-lite/icon-only/cy.svg"
+            },
+            {
+              "lang": "da",
+              "name": "Danish",
+              "path": "/assets/icons/bible-app-lite/icon-only/da.svg"
+            },
+            {
+              "lang": "de",
+              "name": "German",
+              "path": "/assets/icons/bible-app-lite/icon-only/de.svg"
+            },
+            {
+              "lang": "el",
+              "name": "Greek",
+              "path": "/assets/icons/bible-app-lite/icon-only/el.svg"
+            },
+            {
+              "lang": "en",
+              "name": "English",
+              "path": "/assets/icons/bible-app-lite/icon-only/en.svg"
+            },
+            {
+              "lang": "es",
+              "name": "Spanish (Spain)",
+              "path": "/assets/icons/bible-app-lite/icon-only/es.svg"
+            },
+            {
+              "lang": "fa",
+              "name": "Persian",
+              "path": "/assets/icons/bible-app-lite/icon-only/fa.svg"
+            },
+            {
+              "lang": "fi",
+              "name": "Finnish",
+              "path": "/assets/icons/bible-app-lite/icon-only/fi.svg"
+            },
+            {
+              "lang": "fil",
+              "name": "Filipino",
+              "path": "/assets/icons/bible-app-lite/icon-only/fil.svg"
+            },
+            {
+              "lang": "fr",
+              "name": "French",
+              "path": "/assets/icons/bible-app-lite/icon-only/fr.svg"
+            },
+            {
+              "lang": "hi",
+              "name": "Hindi",
+              "path": "/assets/icons/bible-app-lite/icon-only/hi.svg"
+            },
+            {
+              "lang": "hr",
+              "name": "Croatian",
+              "path": "/assets/icons/bible-app-lite/icon-only/hr.svg"
+            },
+            {
+              "lang": "ht",
+              "name": "Haitian Creole",
+              "path": "/assets/icons/bible-app-lite/icon-only/ht.svg"
+            },
+            {
+              "lang": "hu",
+              "name": "Hungarian",
+              "path": "/assets/icons/bible-app-lite/icon-only/hu.svg"
+            },
+            {
+              "lang": "hy",
+              "name": "Armenian",
+              "path": "/assets/icons/bible-app-lite/icon-only/hy.svg"
+            },
+            {
+              "lang": "id",
+              "name": "Indonesian",
+              "path": "/assets/icons/bible-app-lite/icon-only/id.svg"
+            },
+            {
+              "lang": "ig",
+              "name": "Igbo",
+              "path": "/assets/icons/bible-app-lite/icon-only/ig.svg"
+            },
+            {
+              "lang": "is",
+              "name": "Icelandic",
+              "path": "/assets/icons/bible-app-lite/icon-only/is.svg"
+            },
+            {
+              "lang": "it",
+              "name": "Italian",
+              "path": "/assets/icons/bible-app-lite/icon-only/it.svg"
+            },
+            {
+              "lang": "ja",
+              "name": "Japanese",
+              "path": "/assets/icons/bible-app-lite/icon-only/ja.svg"
+            },
+            {
+              "lang": "km",
+              "name": "Khmer",
+              "path": "/assets/icons/bible-app-lite/icon-only/km.svg"
+            },
+            {
+              "lang": "kor",
+              "name": "Korean",
+              "path": "/assets/icons/bible-app-lite/icon-only/kor.svg"
+            },
+            {
+              "lang": "ku",
+              "name": "Kurdish (Sorani)",
+              "path": "/assets/icons/bible-app-lite/icon-only/ku.svg"
+            },
+            {
+              "lang": "lt",
+              "name": "Lithuanian",
+              "path": "/assets/icons/bible-app-lite/icon-only/lt.svg"
+            },
+            {
+              "lang": "lv",
+              "name": "Latvian",
+              "path": "/assets/icons/bible-app-lite/icon-only/lv.svg"
+            },
+            {
+              "lang": "mk",
+              "name": "Macedonian",
+              "path": "/assets/icons/bible-app-lite/icon-only/mk.svg"
+            },
+            {
+              "lang": "ml",
+              "name": "Malayalam",
+              "path": "/assets/icons/bible-app-lite/icon-only/ml.svg"
+            },
+            {
+              "lang": "mn",
+              "name": "Mongolian",
+              "path": "/assets/icons/bible-app-lite/icon-only/mn.svg"
+            },
+            {
+              "lang": "ms",
+              "name": "Malay",
+              "path": "/assets/icons/bible-app-lite/icon-only/ms.svg"
+            },
+            {
+              "lang": "my",
+              "name": "Burmese",
+              "path": "/assets/icons/bible-app-lite/icon-only/my.svg"
+            },
+            {
+              "lang": "nl",
+              "name": "Dutch",
+              "path": "/assets/icons/bible-app-lite/icon-only/nl.svg"
+            },
+            {
+              "lang": "no",
+              "name": "Norwegian",
+              "path": "/assets/icons/bible-app-lite/icon-only/no.svg"
+            },
+            {
+              "lang": "pl",
+              "name": "Polish",
+              "path": "/assets/icons/bible-app-lite/icon-only/pl.svg"
+            },
+            {
+              "lang": "pt",
+              "name": "pt",
+              "path": "/assets/icons/bible-app-lite/icon-only/pt.svg"
+            },
+            {
+              "lang": "ro",
+              "name": "Romanian",
+              "path": "/assets/icons/bible-app-lite/icon-only/ro.svg"
+            },
+            {
+              "lang": "ru",
+              "name": "Russian",
+              "path": "/assets/icons/bible-app-lite/icon-only/ru.svg"
+            },
+            {
+              "lang": "sk",
+              "name": "Slovak",
+              "path": "/assets/icons/bible-app-lite/icon-only/sk.svg"
+            },
+            {
+              "lang": "sl",
+              "name": "Slovenian",
+              "path": "/assets/icons/bible-app-lite/icon-only/sl.svg"
+            },
+            {
+              "lang": "sq",
+              "name": "Albanian",
+              "path": "/assets/icons/bible-app-lite/icon-only/sq.svg"
+            },
+            {
+              "lang": "srp",
+              "name": "Serbian",
+              "path": "/assets/icons/bible-app-lite/icon-only/srp.svg"
+            },
+            {
+              "lang": "sv",
+              "name": "Swedish",
+              "path": "/assets/icons/bible-app-lite/icon-only/sv.svg"
+            },
+            {
+              "lang": "ta",
+              "name": "Tamil",
+              "path": "/assets/icons/bible-app-lite/icon-only/ta.svg"
+            },
+            {
+              "lang": "te",
+              "name": "Telugu",
+              "path": "/assets/icons/bible-app-lite/icon-only/te.svg"
+            },
+            {
+              "lang": "th",
+              "name": "Thai",
+              "path": "/assets/icons/bible-app-lite/icon-only/th.svg"
+            },
+            {
+              "lang": "tr",
+              "name": "Turkish",
+              "path": "/assets/icons/bible-app-lite/icon-only/tr.svg"
+            },
+            {
+              "lang": "uk",
+              "name": "Ukrainian",
+              "path": "/assets/icons/bible-app-lite/icon-only/uk.svg"
+            },
+            {
+              "lang": "ur",
+              "name": "Urdu",
+              "path": "/assets/icons/bible-app-lite/icon-only/ur.svg"
+            },
+            {
+              "lang": "vi",
+              "name": "Vietnamese",
+              "path": "/assets/icons/bible-app-lite/icon-only/vi.svg"
+            },
+            {
+              "lang": "yo",
+              "name": "Yoruba",
+              "path": "/assets/icons/bible-app-lite/icon-only/yo.svg"
+            },
+            {
+              "lang": "zh-CN",
+              "name": "Chinese (Simplified)",
+              "path": "/assets/icons/bible-app-lite/icon-only/zh-CN.svg"
+            },
+            {
+              "lang": "zh-HK",
+              "name": "Chinese (Traditional, Hong Kong)",
+              "path": "/assets/icons/bible-app-lite/icon-only/zh-HK.svg"
+            },
+            {
+              "lang": "zh-TW",
+              "name": "Chinese (Traditional)",
+              "path": "/assets/icons/bible-app-lite/icon-only/zh-TW.svg"
+            },
+            {
+              "lang": "zu",
+              "name": "Zulu",
+              "path": "/assets/icons/bible-app-lite/icon-only/zu.svg"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
