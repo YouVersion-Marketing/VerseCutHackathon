@@ -14,7 +14,7 @@ export function InputPanel({
   studio: Studio;
   space?: 'ads' | 'social' | 'product';
 }) {
-  const running = studio.phase === 'running';
+  const rendering = studio.isRendering;
 
   return (
     <div className="flex h-full flex-col">
@@ -296,11 +296,10 @@ export function InputPanel({
           </div>
         )}
 
-        {!running && (
-          <p className="mb-2 text-center text-[12px] text-faint">
-            Estimated build time: ~{studio.estimateSec}s
-          </p>
-        )}
+        <p className="mb-2 text-center text-[12px] text-faint">
+          Estimated build time: ~{studio.estimateSec}s
+          {rendering && ' · renders in the background — keep editing'}
+        </p>
 
         <button
           type="button"
@@ -308,9 +307,9 @@ export function InputPanel({
           disabled={!studio.canGenerate}
           className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl bg-brand text-[16px] font-bold text-white shadow-[0_8px_24px_-6px_rgba(254,55,69,0.6)] transition hover:bg-brand-strong active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-faint disabled:shadow-none"
         >
-          {running ? (
+          {rendering ? (
             <>
-              <Spinner className="text-white" /> Generating…
+              <Spinner className="text-white" /> Queue another {studio.format === 'video' ? 'video' : 'image'}
             </>
           ) : (
             <>

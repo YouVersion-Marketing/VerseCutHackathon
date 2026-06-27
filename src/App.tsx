@@ -11,7 +11,7 @@ import { BIBLE_APP_ASSETS } from './lib/iconCatalog';
 
 const STATUS: Record<string, { label: string; dot: string }> = {
   idle: { label: 'Ready to generate', dot: 'bg-faint' },
-  running: { label: 'Generating…', dot: 'bg-brand animate-pulse' },
+  running: { label: 'Rendering…', dot: 'bg-brand animate-pulse' },
   done: { label: 'Render complete', dot: 'bg-emerald-500' },
   error: { label: 'Something went wrong', dot: 'bg-brand' },
 };
@@ -24,7 +24,10 @@ export default function App({
   space?: 'ads' | 'social' | 'product';
 }) {
   const studio = useStudio();
-  const status = STATUS[studio.phase];
+  const statusKey = studio.isRendering
+    ? 'running'
+    : (studio.selectedJob?.status ?? 'idle');
+  const status = STATUS[statusKey] ?? STATUS.idle;
   const [libraryOpen, setLibraryOpen] = useState(false);
 
   const langIcon = BIBLE_APP_ASSETS['icon-only'][studio.languageCode];
