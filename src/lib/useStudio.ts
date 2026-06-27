@@ -30,6 +30,49 @@ export interface Stage {
 
 export type Phase = 'idle' | 'running' | 'done' | 'error';
 
+export type JobStatus = 'queued' | 'running' | 'done' | 'error';
+
+export interface Job {
+  id: string;
+  label: string;
+  aspect: AspectRatio;
+  format: OutputFormat;
+  kind: 'image' | 'video';
+  status: JobStatus;
+  stages: Stage[];
+  asset: RenderedAsset | null;
+  error: string | null;
+  reference: string | null;
+  versionAbbr: string | null;
+  language: string;
+}
+
+interface JobSnapshot {
+  versionId: string;
+  bookId: string;
+  chapter: number;
+  fromVerse: number;
+  toVerse: number;
+  format: OutputFormat;
+  useVoiceover: boolean;
+  voiceId: string | null;
+  durationSec: number;
+  render: {
+    aspect: AspectRatio;
+    dimensions: { width: number; height: number };
+    imageFile: File | null;
+    videoFile: File | null;
+    imageUrl: string | null;
+    videoUrl: string | null;
+    mimeType: 'image/png' | 'image/jpeg';
+    languageId: string;
+    logoStyle: LogoStyle;
+    template: 'classic' | 'promo';
+    cta: string;
+    musicFile: File | null;
+  };
+}
+
 const MAX_VERSE = 176; // Psalm 119
 
 export function useStudio() {
@@ -78,15 +121,15 @@ export function useStudio() {
     setCtaState(v);
   }, []);
 
-  // Generation
-  const [phase, setPhase] = useState<Phase>('idle');
-  const [stages, setStages] = useState<Stage[]>([]);
-  const [asset, setAsset] = useState<RenderedAsset | null>(null);
-  const [lastPassage, setLastPassage] = useState<{
-    reference: string;
-    versionAbbreviation: string;
-  } | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  // Generation — a queue of background jobs. Generating snapshots the form into
+  // a job and renders it in the background, so the form stays editable and more
+  // jobs can be queued. Renders run one at a time (real-time canvas capture
+  // can't safely run two videos concurrently).
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const queueRef = useRef<{ id: string; snap: JobSnapshot }[]>([]);
+  const runningRef = useRef(false);
+  const jobSeq = useRef(0);
 
   // Load languages once; default to English when available.
   useEffect(() => {
@@ -257,122 +300,195 @@ export function useStudio() {
   const clearLibraryVideo = useCallback(() => setLibraryVideo(null), []);
 
   const canGenerate =
-    !!languageId && !!bookId && fromVerse >= 1 && toVerse >= fromVerse && phase !== 'running';
+    !!languageId && !!bookId && fromVerse >= 1 && toVerse >= fromVerse;
 
-  const patchStage = useCallback(
-    (id: string, patch: Partial<Stage>) =>
-      setStages((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s))),
+  const patchJob = useCallback(
+    (id: string, patch: Partial<Job>) =>
+      setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, ...patch } : j))),
     [],
   );
 
-  const generate = useCallback(async () => {
-    if (!canGenerate) return;
-    setPhase('running');
-    setError(null);
-    setAsset(null);
+  const patchJobStage = useCallback(
+    (id: string, stageId: string, patch: Partial<Stage>) =>
+      setJobs((prev) =>
+        prev.map((j) =>
+          j.id === id
+            ? { ...j, stages: j.stages.map((s) => (s.id === stageId ? { ...s, ...patch } : s)) }
+            : j,
+        ),
+      ),
+    [],
+  );
 
+  const runJob = useCallback(
+    async (id: string, snap: JobSnapshot) => {
+      patchJob(id, { status: 'running' });
+      patchJobStage(id, 'fetch', { status: 'active' });
+      try {
+        const passage = await provider.fetchPassage({
+          versionId: snap.versionId,
+          bookId: snap.bookId,
+          chapter: snap.chapter,
+          fromVerse: snap.fromVerse,
+          toVerse: snap.toVerse,
+        });
+        patchJobStage(id, 'fetch', { status: 'done' });
+        patchJob(id, {
+          label: passage.reference,
+          reference: passage.reference,
+          versionAbbr: passage.versionAbbreviation,
+        });
+
+        let narrationBlob: Blob | null = null;
+        let effectiveDuration = snap.durationSec;
+        if (snap.useVoiceover && snap.voiceId) {
+          patchJobStage(id, 'voice', { status: 'active' });
+          const narration = await synthesize(
+            `${passage.text} ${passage.reference}`,
+            snap.voiceId,
+            (pct) => patchJobStage(id, 'voice', { progress: pct / 100 }),
+          );
+          narrationBlob = narration.blob;
+          // Give the verse room to finish, plus a short tail.
+          effectiveDuration = Math.max(snap.durationSec, Math.ceil(narration.durationSec) + 1);
+          patchJobStage(id, 'voice', { status: 'done', progress: 1 });
+        }
+
+        patchJobStage(id, 'compose', { status: 'active' });
+        const input = {
+          ...snap.render,
+          passage,
+          durationSec: effectiveDuration,
+          narrationBlob,
+        };
+
+        let result: RenderedAsset;
+        if (snap.format === 'image') {
+          result = await renderImage(input);
+          patchJobStage(id, 'compose', { status: 'done' });
+          patchJobStage(id, 'render', { status: 'done', progress: 1 });
+        } else {
+          result = await renderVideo(input, {
+            onCapture: (f) => patchJobStage(id, 'compose', { progress: f }),
+            onEncode: (f) => {
+              patchJobStage(id, 'compose', { status: 'done' });
+              patchJobStage(id, 'render', { status: 'active', progress: f });
+            },
+          });
+          patchJobStage(id, 'compose', { status: 'done' });
+          patchJobStage(id, 'render', { status: 'done', progress: 1 });
+        }
+
+        patchJob(id, { status: 'done', asset: result });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        setJobs((prev) =>
+          prev.map((j) =>
+            j.id === id
+              ? {
+                  ...j,
+                  status: 'error',
+                  error: message,
+                  stages: j.stages.map((s) =>
+                    s.status === 'active' ? { ...s, status: 'error' } : s,
+                  ),
+                }
+              : j,
+          ),
+        );
+      }
+    },
+    [provider, patchJob, patchJobStage],
+  );
+
+  // Drain the queue one job at a time.
+  const pump = useCallback(async () => {
+    if (runningRef.current) return;
+    const next = queueRef.current.shift();
+    if (!next) return;
+    runningRef.current = true;
+    try {
+      await runJob(next.id, next.snap);
+    } finally {
+      runningRef.current = false;
+      void pump();
+    }
+  }, [runJob]);
+
+  const generate = useCallback(() => {
+    if (!canGenerate) return;
+    const id = `job-${(jobSeq.current += 1)}`;
     const useVoiceover =
       format === 'video' && voiceover && !!voiceId && voiceSupportedForLang;
     const composeLabel =
       format === 'video' ? 'Compositing frames' : 'Compositing layers';
     const renderLabel = format === 'video' ? 'Encoding MP4' : 'Exporting image';
-    const initial: Stage[] = [
-      { id: 'fetch', label: 'Fetching verse', status: 'active' },
+    const stages: Stage[] = [
+      { id: 'fetch', label: 'Fetching verse', status: 'pending' },
       ...(useVoiceover
         ? [{ id: 'voice', label: 'Synthesizing voiceover', status: 'pending' as const }]
         : []),
       { id: 'compose', label: composeLabel, status: 'pending' },
       { id: 'render', label: renderLabel, status: 'pending' },
     ];
-    setStages(initial);
 
-    try {
-      const effectiveVersionId = versionId || config.bible.defaultVersionId;
-      const passage = await provider.fetchPassage({
-        versionId: effectiveVersionId,
-        bookId,
-        chapter,
-        fromVerse,
-        toVerse,
-      });
-      patchStage('fetch', { status: 'done' });
-      setLastPassage({
-        reference: passage.reference,
-        versionAbbreviation: passage.versionAbbreviation,
-      });
+    const provisionalRef =
+      `${currentBook?.name ?? bookId} ${chapter}:${fromVerse}` +
+      (toVerse > fromVerse ? `-${toVerse}` : '');
 
-      let narrationBlob: Blob | null = null;
-      let effectiveDuration = durationSec;
-      if (useVoiceover && voiceId) {
-        patchStage('voice', { status: 'active' });
-        const narrationText = `${passage.text} ${passage.reference}`;
-        const narration = await synthesize(narrationText, voiceId, (pct) =>
-          patchStage('voice', { progress: pct / 100 }),
-        );
-        narrationBlob = narration.blob;
-        // Give the verse room to finish, plus a short tail.
-        effectiveDuration = Math.max(durationSec, Math.ceil(narration.durationSec) + 1);
-        patchStage('voice', { status: 'done', progress: 1 });
-      }
-
-      patchStage('compose', { status: 'active' });
-
-      const dimensions = ASPECT_DIMENSIONS[aspect];
-      const input = {
-        passage,
+    const snap: JobSnapshot = {
+      versionId: versionId || config.bible.defaultVersionId,
+      bookId,
+      chapter,
+      fromVerse,
+      toVerse,
+      format,
+      useVoiceover,
+      voiceId,
+      durationSec,
+      render: {
         aspect,
-        dimensions,
+        dimensions: ASPECT_DIMENSIONS[aspect],
         imageFile,
         videoFile,
         imageUrl: sharedBg?.kind === 'image' ? sharedBg.url : null,
-        videoUrl:
-          libraryVideo?.url ?? (sharedBg?.kind === 'video' ? sharedBg.url : null),
-        mimeType: (imageFormat === 'jpg' ? 'image/jpeg' : 'image/png') as
-          | 'image/png'
-          | 'image/jpeg',
+        videoUrl: libraryVideo?.url ?? (sharedBg?.kind === 'video' ? sharedBg.url : null),
+        mimeType: imageFormat === 'jpg' ? 'image/jpeg' : 'image/png',
         languageId: languageCode,
         logoStyle,
         template,
         cta,
-        durationSec: effectiveDuration,
         musicFile,
-        narrationBlob,
-      };
+      },
+    };
 
-      let result: RenderedAsset;
-      if (format === 'image') {
-        result = await renderImage(input);
-        patchStage('compose', { status: 'done' });
-        patchStage('render', { status: 'done', progress: 1 });
-      } else {
-        result = await renderVideo(input, {
-          onCapture: (f) => patchStage('compose', { progress: f }),
-          onEncode: (f) => {
-            patchStage('compose', { status: 'done' });
-            patchStage('render', { status: 'active', progress: f });
-          },
-        });
-        patchStage('compose', { status: 'done' });
-        patchStage('render', { status: 'done', progress: 1 });
-      }
+    const job: Job = {
+      id,
+      label: provisionalRef,
+      aspect,
+      format,
+      kind: format === 'image' ? 'image' : 'video',
+      status: 'queued',
+      stages,
+      asset: null,
+      error: null,
+      reference: null,
+      versionAbbr: null,
+      language: languageId,
+    };
 
-      setAsset(result);
-      setPhase('done');
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      setError(message);
-      setStages((prev) =>
-        prev.map((s) => (s.status === 'active' ? { ...s, status: 'error' } : s)),
-      );
-      setPhase('error');
-    }
+    setJobs((prev) => [job, ...prev]);
+    setSelectedJobId(id);
+    queueRef.current.push({ id, snap });
+    void pump();
   }, [
     canGenerate,
     format,
     versionId,
-    provider,
     languageId,
+    languageCode,
     bookId,
+    currentBook,
     chapter,
     fromVerse,
     toVerse,
@@ -390,8 +506,14 @@ export function useStudio() {
     voiceover,
     voiceId,
     voiceSupportedForLang,
-    patchStage,
+    pump,
   ]);
+
+  const selectedJob = useMemo(
+    () => jobs.find((j) => j.id === selectedJobId) ?? jobs[0] ?? null,
+    [jobs, selectedJobId],
+  );
+  const isRendering = jobs.some((j) => j.status === 'running' || j.status === 'queued');
 
   // Rough build-time estimate (seconds) shown before Generate. Video capture is
   // real-time, so duration dominates; voiceover adds a one-time model download
@@ -470,12 +592,11 @@ export function useStudio() {
     voiceSupportedForLang,
     ttsStatus,
     estimateSec,
-    // generation
-    phase,
-    stages,
-    asset,
-    lastPassage,
-    error,
+    // generation (background job queue)
+    jobs,
+    selectedJob,
+    selectJob: setSelectedJobId,
+    isRendering,
     canGenerate,
     generate,
   };

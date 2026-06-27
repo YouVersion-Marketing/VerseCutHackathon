@@ -1,10 +1,57 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { config } from '../config';
-import type { Stage, useStudio } from '../lib/useStudio';
+import type { Job, Stage, useStudio } from '../lib/useStudio';
 import { saveAdToLibrary } from '../lib/library';
-import { Check, Download, ImageIcon, Spinner } from './icons';
+import { Check, Download, ImageIcon, Spinner, VideoIcon } from './icons';
 
 type Studio = ReturnType<typeof useStudio>;
+
+function jobProgress(job: Job): number | null {
+  const active = job.stages.find((s) => s.status === 'active');
+  return active?.progress != null ? Math.round(active.progress * 100) : null;
+}
+
+function JobChip({
+  job,
+  selected,
+  onSelect,
+}: {
+  job: Job;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const pct = jobProgress(job);
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      title={`${job.label} · ${job.aspect}`}
+      className={`flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-[13px] font-semibold transition ${
+        selected
+          ? 'border-brand bg-brand/5 text-ink'
+          : 'border-line bg-surface text-muted hover:border-faint'
+      }`}
+    >
+      <span className="text-faint">
+        {job.kind === 'video' ? (
+          <VideoIcon width={14} height={14} />
+        ) : (
+          <ImageIcon width={14} height={14} />
+        )}
+      </span>
+      <span className="max-w-[120px] truncate">{job.label}</span>
+      <span className="flex h-4 w-4 shrink-0 items-center justify-center">
+        {job.status === 'done' && <Check />}
+        {job.status === 'running' && <Spinner className="text-brand" />}
+        {job.status === 'queued' && <span className="h-2 w-2 rounded-full bg-line" />}
+        {job.status === 'error' && <span className="h-2 w-2 rounded-full bg-brand" />}
+      </span>
+      {job.status === 'running' && pct != null && (
+        <span className="tabular-nums text-[12px] text-muted">{pct}%</span>
+      )}
+    </button>
+  );
+}
 
 function StageRow({ stage }: { stage: Stage }) {
   const pct = stage.progress != null ? Math.round(stage.progress * 100) : null;
@@ -81,22 +128,32 @@ export function OutputPanel({
   studio: Studio;
   space?: 'ads' | 'social' | 'product';
 }) {
-  const { phase, stages, asset, aspect, format, error } = studio;
+  const { jobs, selectedJob } = studio;
   const showSafe = space === 'social' && !!studio.platform;
+  // Frame mirrors the selected job (so chips of different aspects preview right);
+  // before any job exists, mirror the current form selection.
+  const aspect = selectedJob?.aspect ?? studio.aspect;
+  const format = selectedJob?.format ?? studio.format;
   const kindLabel = format === 'video' ? 'VIDEO' : 'IMAGE';
+  const asset = selectedJob?.asset ?? null;
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
+  // Save status is per-job; reset when the user switches the selected job.
+  useEffect(() => {
+    setSaveState('idle');
+  }, [selectedJob?.id]);
+
   async function saveToLibrary() {
-    if (!asset) return;
+    if (!asset || !selectedJob) return;
     setSaveState('saving');
     try {
       await saveAdToLibrary(asset, {
-        title: studio.lastPassage?.reference,
-        format,
-        aspect,
-        language: studio.languageId,
-        reference: studio.lastPassage?.reference ?? null,
-        versionAbbr: studio.lastPassage?.versionAbbreviation ?? null,
+        title: selectedJob.reference ?? undefined,
+        format: selectedJob.format,
+        aspect: selectedJob.aspect,
+        language: selectedJob.language,
+        reference: selectedJob.reference,
+        versionAbbr: selectedJob.versionAbbr,
       });
       setSaveState('saved');
     } catch {
@@ -122,8 +179,21 @@ export function OutputPanel({
         </span>
       </div>
 
+      {jobs.length > 0 && (
+        <div className="scroll-slim flex gap-2 overflow-x-auto px-10 pt-4">
+          {jobs.map((job) => (
+            <JobChip
+              key={job.id}
+              job={job}
+              selected={job.id === selectedJob?.id}
+              onSelect={() => studio.selectJob(job.id)}
+            />
+          ))}
+        </div>
+      )}
+
       <div className="flex flex-1 items-center justify-center px-10 py-8">
-        {phase === 'idle' && (
+        {!selectedJob && (
           <div className="max-w-sm text-center">
             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-surface text-faint shadow-sm ring-1 ring-line">
               <ImageIcon width={26} height={26} />
@@ -133,12 +203,13 @@ export function OutputPanel({
             </h2>
             <p className="text-[14px] leading-relaxed text-muted">
               Pick a language and verse range on the left, then generate to see your{' '}
-              {format === 'video' ? 'video' : 'image'} ad render in {aspect}.
+              {format === 'video' ? 'video' : 'image'} ad render in {aspect}. You can keep
+              editing and queue more while a render runs.
             </p>
           </div>
         )}
 
-        {phase === 'running' && (
+        {selectedJob && (selectedJob.status === 'queued' || selectedJob.status === 'running') && (
           <div className="flex w-full max-w-md flex-col items-center">
             <PreviewFrame aspect={aspect} safeArea={showSafe}>
               <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-800 to-black">
@@ -146,14 +217,19 @@ export function OutputPanel({
               </div>
             </PreviewFrame>
             <div className="mt-7 w-full max-w-xs rounded-2xl border border-line bg-surface p-4">
-              {stages.map((s) => (
+              {selectedJob.status === 'queued' && (
+                <p className="mb-1 text-center text-[13px] font-semibold text-muted">
+                  Queued — waiting for the current render…
+                </p>
+              )}
+              {selectedJob.stages.map((s) => (
                 <StageRow key={s.id} stage={s} />
               ))}
             </div>
           </div>
         )}
 
-        {phase === 'done' && asset && (
+        {selectedJob && selectedJob.status === 'done' && asset && (
           <div className="flex animate-fade-up flex-col items-center">
             <PreviewFrame aspect={aspect} safeArea={showSafe}>
               {asset.kind === 'image' ? (
@@ -207,10 +283,10 @@ export function OutputPanel({
           </div>
         )}
 
-        {phase === 'error' && (
+        {selectedJob && selectedJob.status === 'error' && (
           <div className="max-w-sm text-center">
             <h2 className="mb-2 text-[18px] font-bold text-ink">Generation failed</h2>
-            <p className="mb-5 text-[14px] leading-relaxed text-muted">{error}</p>
+            <p className="mb-5 text-[14px] leading-relaxed text-muted">{selectedJob.error}</p>
             <button
               type="button"
               onClick={studio.generate}
@@ -222,7 +298,7 @@ export function OutputPanel({
         )}
       </div>
 
-      {(phase === 'running' || phase === 'done') && (
+      {selectedJob && (
         <div className="px-10 pb-6 text-center">
           <p className="text-[12px] text-faint">
             {config.brand.name} · rendered in your browser
