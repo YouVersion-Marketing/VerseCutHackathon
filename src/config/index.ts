@@ -69,7 +69,7 @@ export const config = {
   },
 } as const;
 
-export type AspectRatio = '9:16' | '1:1' | '16:9';
+export type AspectRatio = '9:16' | '4:5' | '1:1' | '16:9';
 export type OutputFormat = 'video' | 'image';
 
 /** Pixel dimensions for each aspect ratio (1080p-class). */
@@ -78,6 +78,7 @@ export const ASPECT_DIMENSIONS: Record<
   { width: number; height: number }
 > = {
   '9:16': { width: 1080, height: 1920 },
+  '4:5': { width: 1080, height: 1350 },
   '1:1': { width: 1080, height: 1080 },
   '16:9': { width: 1920, height: 1080 },
 };

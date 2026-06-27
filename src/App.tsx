@@ -16,7 +16,13 @@ const STATUS: Record<string, { label: string; dot: string }> = {
   error: { label: 'Something went wrong', dot: 'bg-brand' },
 };
 
-export default function App({ userEmail }: { userEmail?: string | null }) {
+export default function App({
+  userEmail,
+  space = 'ads',
+}: {
+  userEmail?: string | null;
+  space?: 'ads' | 'social' | 'product';
+}) {
   const studio = useStudio();
   const status = STATUS[studio.phase];
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -71,10 +77,10 @@ export default function App({ userEmail }: { userEmail?: string | null }) {
       {/* Two-panel body */}
       <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(420px,468px)_1fr]">
         <aside className="min-h-0 border-r border-line bg-surface">
-          <InputPanel studio={studio} />
+          <InputPanel studio={studio} space={space} />
         </aside>
         <main className="min-h-0 bg-panel">
-          <OutputPanel studio={studio} />
+          <OutputPanel studio={studio} space={space} />
         </main>
       </div>
 

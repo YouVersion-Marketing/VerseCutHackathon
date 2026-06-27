@@ -3,10 +3,17 @@ import { ImageIcon, Play, Spinner, VideoIcon } from './icons';
 import { FieldLabel, Segmented, SectionHeader, Select, Stepper, UploadField } from './ui';
 import { VideoLibrary } from './VideoLibrary';
 import { ImageLibrary } from './ImageLibrary';
+import { SOCIAL_FORMATS } from '../lib/socialFormats';
 
 type Studio = ReturnType<typeof useStudio>;
 
-export function InputPanel({ studio }: { studio: Studio }) {
+export function InputPanel({
+  studio,
+  space = 'ads',
+}: {
+  studio: Studio;
+  space?: 'ads' | 'social' | 'product';
+}) {
   const running = studio.phase === 'running';
 
   return (
@@ -169,6 +176,20 @@ export function InputPanel({ studio }: { studio: Studio }) {
 
       {/* Sticky footer: format + aspect + generate */}
       <div className="border-t border-line bg-surface px-7 pt-4 pb-5">
+        {space === 'social' && (
+          <div className="mb-4">
+            <div className="mb-2 text-[15px] font-semibold text-ink">Platform</div>
+            <Select
+              value={studio.platform ?? ''}
+              onChange={studio.selectPlatform}
+              placeholder="Choose a platform"
+              options={SOCIAL_FORMATS.map((f) => ({
+                value: f.id,
+                label: `${f.label} · ${f.aspect}`,
+              }))}
+            />
+          </div>
+        )}
         <div className="mb-4 flex gap-6">
           <div className="flex-1">
             <div className="mb-2 text-[15px] font-semibold text-ink">Output format</div>
@@ -203,6 +224,7 @@ export function InputPanel({ studio }: { studio: Studio }) {
               options={[
                 { value: '16:9', label: '16:9' },
                 { value: '1:1', label: '1:1' },
+                { value: '4:5', label: '4:5' },
                 { value: '9:16', label: '9:16' },
               ]}
             />
