@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { defaultCta } from './cta';
+import { SOCIAL_FORMAT_BY_ID } from './socialFormats';
 import { ASPECT_DIMENSIONS, config, type AspectRatio, type OutputFormat } from '../config';
 import { getBibleProvider, type BibleVersion, type Book, type Language } from './bible';
 import { renderImage, renderVideo, type RenderedAsset } from './render';
@@ -54,6 +55,12 @@ export function useStudio() {
   const [libraryBusy, setLibraryBusy] = useState(false);
   const [format, setFormat] = useState<OutputFormat>(config.output.defaultFormat);
   const [aspect, setAspect] = useState<AspectRatio>(config.output.defaultAspect);
+  const [platform, setPlatform] = useState<string | null>(null);
+  const selectPlatform = useCallback((id: string) => {
+    setPlatform(id);
+    const fmt = SOCIAL_FORMAT_BY_ID[id];
+    if (fmt) setAspect(fmt.aspect);
+  }, []);
   const [imageFormat, setImageFormat] = useState<'png' | 'jpg'>('png');
   const [durationSec, setDurationSec] = useState<number>(config.output.videoDurationSec);
   const [logoStyle, setLogoStyle] = useState<LogoStyle>(config.brand.defaultLogoStyle);
@@ -369,6 +376,8 @@ export function useStudio() {
     setFormat,
     aspect,
     setAspect,
+    platform,
+    selectPlatform,
     imageFormat,
     setImageFormat,
     durationSec,

@@ -42,16 +42,18 @@ function StageRow({ stage }: { stage: Stage }) {
 
 function PreviewFrame({
   aspect,
+  safeArea,
   children,
 }: {
   aspect: string;
+  safeArea?: boolean;
   children: React.ReactNode;
 }) {
   // Size tall/square formats by height; only 16:9 sizes by width.
   const byHeight = aspect !== '16:9';
   return (
     <div
-      className="overflow-hidden rounded-2xl bg-black shadow-[0_24px_60px_-20px_rgba(0,0,0,0.45)] ring-1 ring-black/5"
+      className="relative overflow-hidden rounded-2xl bg-black shadow-[0_24px_60px_-20px_rgba(0,0,0,0.45)] ring-1 ring-black/5"
       style={{
         aspectRatio: aspect.replace(':', ' / '),
         height: byHeight ? 'min(74vh, 720px)' : undefined,
@@ -60,12 +62,27 @@ function PreviewFrame({
       }}
     >
       {children}
+      {safeArea && (
+        <div className="pointer-events-none absolute inset-0 z-10">
+          <div className="absolute inset-x-[6%] inset-y-[10%] rounded-lg border border-dashed border-white/45" />
+          <span className="absolute left-1/2 top-2 -translate-x-1/2 rounded bg-black/45 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white/85">
+            Safe area
+          </span>
+        </div>
+      )}
     </div>
   );
 }
 
-export function OutputPanel({ studio }: { studio: Studio }) {
+export function OutputPanel({
+  studio,
+  space = 'ads',
+}: {
+  studio: Studio;
+  space?: 'ads' | 'social' | 'product';
+}) {
   const { phase, stages, asset, aspect, format, error } = studio;
+  const showSafe = space === 'social' && !!studio.platform;
   const kindLabel = format === 'video' ? 'VIDEO' : 'IMAGE';
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
@@ -123,7 +140,7 @@ export function OutputPanel({ studio }: { studio: Studio }) {
 
         {phase === 'running' && (
           <div className="flex w-full max-w-md flex-col items-center">
-            <PreviewFrame aspect={aspect}>
+            <PreviewFrame aspect={aspect} safeArea={showSafe}>
               <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-800 to-black">
                 <div className="h-full w-full animate-pulse-soft bg-[radial-gradient(circle_at_50%_30%,rgba(254,55,69,0.25),transparent_60%)]" />
               </div>
@@ -138,7 +155,7 @@ export function OutputPanel({ studio }: { studio: Studio }) {
 
         {phase === 'done' && asset && (
           <div className="flex animate-fade-up flex-col items-center">
-            <PreviewFrame aspect={aspect}>
+            <PreviewFrame aspect={aspect} safeArea={showSafe}>
               {asset.kind === 'image' ? (
                 <img src={asset.url} alt="Generated verse ad" className="h-full w-full object-contain" />
               ) : (
