@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { useStudio } from '../lib/useStudio';
 import {
+  deleteSharedAsset,
   listSharedAssets,
   uploadSharedAsset,
   type SharedAsset,
@@ -15,6 +16,7 @@ export function ImageLibrary({ studio }: { studio: Studio }) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   function refresh() {
@@ -37,6 +39,23 @@ export function ImageLibrary({ studio }: { studio: Studio }) {
       setError('Upload failed');
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function onRemove(asset: SharedAsset) {
+    if (!window.confirm(`Remove “${asset.name}” from the shared library? This affects everyone.`)) {
+      return;
+    }
+    setRemovingId(asset.id);
+    setError(null);
+    try {
+      await deleteSharedAsset(asset.id);
+      setImages((prev) => prev.filter((a) => a.id !== asset.id));
+      if (studio.sharedBg?.url === asset.fileUrl) studio.clearSharedBg();
+    } catch {
+      setError('Could not remove the image');
+    } finally {
+      setRemovingId(null);
     }
   }
 
@@ -110,18 +129,33 @@ export function ImageLibrary({ studio }: { studio: Studio }) {
           <div className="grid grid-cols-3 gap-2">
             {images.map((a) => {
               const active = selected?.url === a.fileUrl;
+              const removing = removingId === a.id;
               return (
-                <button
+                <div
                   key={a.id}
-                  type="button"
-                  onClick={() => studio.selectSharedAsset(a)}
-                  title={a.name}
-                  className={`relative aspect-square overflow-hidden rounded-lg border bg-black transition ${
+                  className={`group relative aspect-square overflow-hidden rounded-lg border bg-black transition ${
                     active ? 'border-brand ring-2 ring-brand/30' : 'border-line hover:border-faint'
                   }`}
                 >
-                  <img src={a.fileUrl} alt={a.name} className="h-full w-full object-cover" />
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => studio.selectSharedAsset(a)}
+                    title={a.name}
+                    className="block h-full w-full"
+                  >
+                    <img src={a.fileUrl} alt={a.name} className="h-full w-full object-cover" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Remove ${a.name}`}
+                    title="Remove from library"
+                    onClick={() => onRemove(a)}
+                    disabled={removing}
+                    className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-md bg-black/55 text-white opacity-0 transition hover:bg-black/80 focus-visible:opacity-100 group-hover:opacity-100 disabled:opacity-100"
+                  >
+                    {removing ? <Spinner className="text-white" /> : <XMark width={14} height={14} />}
+                  </button>
+                </div>
               );
             })}
           </div>

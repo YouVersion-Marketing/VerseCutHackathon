@@ -56,6 +56,12 @@ export async function listMyAds(): Promise<SavedAd[]> {
   return (await res.json()).data as SavedAd[];
 }
 
+/** Delete one of the signed-in user's saved ads (DB row + Blob file). */
+export async function deleteMyAd(id: string): Promise<void> {
+  const res = await fetch(`/api/library/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to delete');
+}
+
 // --- Shared background assets (uploaded once, reusable by everyone) ----------
 
 export interface SharedAsset {
@@ -94,4 +100,10 @@ export async function uploadSharedAsset(file: File): Promise<SharedAsset> {
   });
   if (!res.ok) throw new Error('Failed to share asset');
   return (await res.json()).data as SharedAsset;
+}
+
+/** Remove a team-shared asset (DB row + Blob file). */
+export async function deleteSharedAsset(id: string): Promise<void> {
+  const res = await fetch(`/api/uploads/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to remove asset');
 }
