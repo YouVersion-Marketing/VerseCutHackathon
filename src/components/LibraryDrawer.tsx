@@ -1,10 +1,24 @@
 import { useEffect, useState } from 'react';
-import { listMyAds, type SavedAd } from '../lib/library';
-import { Download, Spinner, XMark } from './icons';
+import { deleteMyAd, listMyAds, type SavedAd } from '../lib/library';
+import { Download, Spinner, Trash, XMark } from './icons';
 
 export function LibraryDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [ads, setAds] = useState<SavedAd[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+
+  async function onRemove(ad: SavedAd) {
+    if (!window.confirm(`Delete “${ad.reference ?? 'this ad'}” from your library?`)) return;
+    setRemovingId(ad.id);
+    try {
+      await deleteMyAd(ad.id);
+      setAds((prev) => (prev ? prev.filter((a) => a.id !== ad.id) : prev));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to delete');
+    } finally {
+      setRemovingId(null);
+    }
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -66,16 +80,27 @@ export function LibraryDrawer({ open, onClose }: { open: boolean; onClose: () =>
                         {ad.aspect}
                       </div>
                     </div>
-                    <a
-                      href={ad.fileUrl}
-                      download
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-line-soft hover:text-ink"
-                      aria-label="Download"
-                    >
-                      <Download />
-                    </a>
+                    <div className="flex shrink-0 items-center">
+                      <a
+                        href={ad.fileUrl}
+                        download
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted transition hover:bg-line-soft hover:text-ink"
+                        aria-label="Download"
+                      >
+                        <Download />
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => onRemove(ad)}
+                        disabled={removingId === ad.id}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted transition hover:bg-line-soft hover:text-brand disabled:opacity-60"
+                        aria-label="Delete"
+                      >
+                        {removingId === ad.id ? <Spinner className="text-muted" /> : <Trash />}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
