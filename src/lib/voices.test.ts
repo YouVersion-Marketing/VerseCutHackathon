@@ -8,10 +8,17 @@ describe('voices', () => {
     expect(defaultVoice('pt')).toBe('pf_dora');
   });
 
-  it('falls back to the base code for region/script variants', () => {
+  it('resolves region variants regardless of hyphen vs underscore', () => {
+    // App language codes use underscores (e.g. "en_GB"); both forms must hit.
+    expect(defaultVoice('en_GB')).toBe('bf_emma');
     expect(defaultVoice('en-GB')).toBe('bf_emma');
     expect(defaultVoice('pt_BR')).toBe('pf_dora');
     expect(defaultVoice('zh_TW')).toBe('zf_xiaobei');
+  });
+
+  it('falls back to the base language for unknown variants', () => {
+    expect(defaultVoice('en_US')).toBe('af_heart');
+    expect(defaultVoice('es_MX')).toBe('ef_dora');
   });
 
   it('returns null for languages Kokoro does not cover', () => {

@@ -19,15 +19,17 @@ export const VOICES: Voice[] = [
   { id: 'zf_xiaobei', label: 'Xiaobei — Mandarin (F)', lang: 'zh' },
 ];
 
+// Keys use underscores to match the YouVersion app language codes (e.g. "en_GB"
+// in appLanguages.ts); lookups normalize hyphens to underscores so both forms hit.
 const DEFAULT_BY_LANG: Record<string, string> = {
   en: 'af_heart',
-  'en-GB': 'bf_emma',
+  en_GB: 'bf_emma',
   es: 'ef_dora',
-  'es-LA': 'ef_dora',
+  es_LA: 'ef_dora',
   fr: 'ff_siwis',
   it: 'if_sara',
   pt: 'pf_dora',
-  'pt-BR': 'pf_dora',
+  pt_BR: 'pf_dora',
   hi: 'hf_alpha',
   ja: 'jf_alpha',
   zh: 'zf_xiaobei',
@@ -37,11 +39,8 @@ const DEFAULT_BY_LANG: Record<string, string> = {
 
 /** Default voice id for a language code, or null if Kokoro doesn't cover it. */
 export function defaultVoice(languageCode: string): string | null {
-  return (
-    DEFAULT_BY_LANG[languageCode] ??
-    DEFAULT_BY_LANG[languageCode.split(/[-_]/)[0]] ??
-    null
-  );
+  const norm = languageCode.replace(/-/g, '_');
+  return DEFAULT_BY_LANG[norm] ?? DEFAULT_BY_LANG[norm.split('_')[0]] ?? null;
 }
 
 export function voiceSupported(languageCode: string): boolean {

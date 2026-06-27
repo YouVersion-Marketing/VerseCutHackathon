@@ -27,21 +27,29 @@ const RANGES: { script: Script; re: RegExp }[] = [
   { script: 'greek', re: /[Ͱ-Ͽ]/ },
 ];
 
-/** Detect the dominant non-Latin script of a string (Latin if none found). */
+const LATIN_LETTER = /[A-Za-zÀ-ÖØ-öø-ÿĀ-ɏ]/;
+
+/** Detect the dominant script of a string (Latin if it dominates / none found). */
 export function detectScript(text: string): Script {
-  // Count matches per script; kana presence forces Japanese over bare Han.
+  // Tally per-script character counts, including Latin, so a single stray
+  // non-Latin glyph in an otherwise-Latin verse can't hijack the script (and
+  // wrongly flip RTL / swap the font). kana presence forces Japanese over Han.
   const counts: Partial<Record<Script, number>> = {};
+  let latin = 0;
   for (const ch of text) {
+    let matched = false;
     for (const { script, re } of RANGES) {
       if (re.test(ch)) {
         counts[script] = (counts[script] ?? 0) + 1;
+        matched = true;
         break;
       }
     }
+    if (!matched && LATIN_LETTER.test(ch)) latin += 1;
   }
   if (counts.japanese) return 'japanese';
   let best: Script = 'latin';
-  let max = 0;
+  let max = latin;
   for (const { script } of RANGES) {
     const n = counts[script] ?? 0;
     if (n > max) {
