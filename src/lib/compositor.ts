@@ -134,8 +134,19 @@ function fitVerse(
     size -= 4;
   }
   ctx.font = font(minSize);
-  const lines = wrapText(ctx, text, maxWidth);
-  return { lines, size: minSize, lineHeight: minSize * 1.32 };
+  const lineHeight = minSize * 1.32;
+  const allLines = wrapText(ctx, text, maxWidth);
+  // Even at the smallest size the verse may not fit; clamp the line count to the
+  // height budget (with an ellipsis) so it never overflows off-canvas (classic)
+  // or into the CTA/logo (promo).
+  const maxLines = Math.max(1, Math.floor(maxHeight / lineHeight));
+  if (allLines.length <= maxLines) {
+    return { lines: allLines, size: minSize, lineHeight };
+  }
+  const lines = allLines.slice(0, maxLines);
+  lines[lines.length - 1] =
+    lines[lines.length - 1].replace(/[\s'"”’).,;:]+$/, '') + '…';
+  return { lines, size: minSize, lineHeight };
 }
 
 export function composeFrame(
@@ -235,11 +246,12 @@ export function composeFrame(
     ? `${refText}  ·  ${opts.versionAbbreviation}`
     : refText;
   const refFamily = casedScript ? 'Plus Jakarta Sans' : vf.family;
-  ctx.font = `700 ${refSize}px '${refFamily}', system-ui, sans-serif`;
+  const refFontAt = (px: number) => `700 ${px}px '${refFamily}', system-ui, sans-serif`;
+  const fittedRef = fitTextSize(ctx, label, textMaxWidth, refSize, refFontAt, casedScript ? 0.08 : 0);
   const lsY = baselineY - lineHeight + refGap * 0.7;
   if (casedScript) {
     ctx.textAlign = 'left';
-    drawTracked(ctx, label, margin, lsY, refSize * 0.08);
+    drawTracked(ctx, label, margin, lsY, fittedRef * 0.08);
   } else {
     ctx.direction = rtl ? 'rtl' : 'ltr';
     ctx.textAlign = align;
@@ -355,7 +367,7 @@ function composePromo(ctx: CanvasRenderingContext2D, opts: ComposeOptions) {
   ctx.direction = rtl ? 'rtl' : 'ltr';
   ctx.textAlign = 'center';
   ctx.fillStyle = '#5b6b68';
-  ctx.font = `600 ${Math.round(w * 0.038)}px '${uiFamily}', system-ui, sans-serif`;
+  fitTextSize(ctx, label, maxW, Math.round(w * 0.038), (px) => `600 ${px}px '${uiFamily}', system-ui, sans-serif`);
   ctx.fillText(label, w / 2, refY);
   ctx.restore();
 
@@ -366,7 +378,7 @@ function composePromo(ctx: CanvasRenderingContext2D, opts: ComposeOptions) {
     ctx.translate(0, (1 - detail) * 12);
     ctx.textAlign = 'center';
     ctx.fillStyle = '#1a1a1a';
-    ctx.font = `800 ${Math.round(w * 0.052)}px '${uiFamily}', system-ui, sans-serif`;
+    fitTextSize(ctx, opts.cta, maxW, Math.round(w * 0.052), (px) => `800 ${px}px '${uiFamily}', system-ui, sans-serif`);
     ctx.fillText(opts.cta, w / 2, Math.round(h * 0.8));
     ctx.restore();
   }
@@ -382,6 +394,31 @@ function composePromo(ctx: CanvasRenderingContext2D, opts: ComposeOptions) {
     ctx.drawImage(logo, Math.round(w / 2 - lw / 2), Math.round(h * 0.855), lw, targetH);
     ctx.restore();
   }
+}
+
+/**
+ * Largest font size (down to half the start size) at which `text` fits within
+ * `maxWidth` on one line. `trackingFrac` accounts for per-character letter
+ * spacing (as a fraction of the font size) used by drawTracked. Leaves ctx.font
+ * set to the chosen size.
+ */
+function fitTextSize(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  startPx: number,
+  fontAt: (px: number) => string,
+  trackingFrac = 0,
+): number {
+  let px = startPx;
+  const min = Math.max(8, Math.round(startPx * 0.5));
+  for (; px > min; px -= 2) {
+    ctx.font = fontAt(px);
+    const tracking = trackingFrac ? px * trackingFrac * text.length : 0;
+    if (ctx.measureText(text).width + tracking <= maxWidth) break;
+  }
+  ctx.font = fontAt(px);
+  return px;
 }
 
 function drawTracked(

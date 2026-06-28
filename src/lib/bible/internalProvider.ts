@@ -102,9 +102,11 @@ export class YouVersionInternalProvider implements BibleProvider {
         ? `${query.fromVerse}`
         : `${query.fromVerse}-${query.toVerse}`;
 
+    // Intentionally NOT falling back to the whole stripped chapter when
+    // extraction fails — that silently rendered an entire chapter as the verse.
     return {
       reference: `${bookName} ${query.chapter}:${range}`,
-      text: text || data.content?.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() || '',
+      text,
       versionAbbreviation: version?.local_abbreviation || version?.abbreviation || '',
     };
   }
@@ -120,22 +122,33 @@ export function extractVerses(
 ): string {
   if (!html || typeof DOMParser === 'undefined') return '';
   const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  // Requested refs. YouVersion HTML sometimes merges adjacent verses into one
+  // span whose data-usfm holds several refs (e.g. "JHN.3.16+JHN.3.17" or
+  // space-separated), so match by membership rather than an exact selector.
+  const wanted = new Set<string>();
+  for (let v = from; v <= to; v++) wanted.add(`${bookId}.${chapter}.${v}`);
+  const matches = (usfm: string) =>
+    usfm.split(/[+\s]+/).some((ref) => wanted.has(ref));
+
   const parts: string[] = [];
-  for (let v = from; v <= to; v++) {
-    const usfm = `${bookId}.${chapter}.${v}`;
-    const nodes = doc.querySelectorAll(`[data-usfm="${usfm}"]`);
+  doc.querySelectorAll('[data-usfm]').forEach((node) => {
+    if (!matches(node.getAttribute('data-usfm') ?? '')) return;
+    // Skip a node nested inside an already-matched verse node (avoids counting
+    // the same words twice).
+    const ancestor = node.parentElement?.closest('[data-usfm]');
+    if (ancestor && matches(ancestor.getAttribute('data-usfm') ?? '')) return;
+
+    // Prefer the `.content` spans (verse words); they exclude the verse label.
     let verseText = '';
-    nodes.forEach((node) => {
-      // Prefer the `.content` spans (verse words); they exclude the verse label.
-      const content = node.querySelectorAll('.content');
-      if (content.length) {
-        content.forEach((c) => (verseText += c.textContent ?? ''));
-      } else {
-        verseText += node.textContent ?? '';
-      }
-    });
+    const content = node.querySelectorAll('.content');
+    if (content.length) {
+      content.forEach((c) => (verseText += c.textContent ?? ''));
+    } else {
+      verseText += node.textContent ?? '';
+    }
     verseText = verseText.replace(/\s+/g, ' ').trim();
     if (verseText) parts.push(verseText);
-  }
+  });
   return parts.join(' ').replace(/\s+/g, ' ').trim();
 }

@@ -33,4 +33,9 @@ describe('detectScript', () => {
     // a stray latin name inside arabic text should still be arabic
     expect(detectScript('قال يسوع Jesus لهم')).toBe('arabic');
   });
+  it('stays latin when a stray non-latin glyph appears in latin text', () => {
+    // A single Hebrew/Greek char must not hijack the whole verse (and flip RTL).
+    expect(detectScript('See the note (א) for detail')).toBe('latin');
+    expect(detectScript('In the beginning was the Word Λογος')).toBe('latin');
+  });
 });
