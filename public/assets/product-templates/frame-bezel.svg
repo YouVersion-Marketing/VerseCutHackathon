@@ -1,0 +1,17 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 1017.8 2109.67" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Bezel" filter="url(#filter0_d_0_175)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M152.909 9.55681C73.7377 9.55681 9.55681 73.7378 9.55681 152.909V1956.76C9.55681 2035.93 73.7377 2100.11 152.909 2100.11H864.891C944.062 2100.11 1008.24 2035.93 1008.24 1956.76V152.909C1008.24 73.7377 944.062 9.55681 864.891 9.55681H152.909ZM157.687 45.3948C94.3504 45.3948 43.0056 96.7395 43.0056 160.076V1947.2C43.0056 2010.54 94.3504 2061.88 157.687 2061.88H860.113C923.45 2061.88 974.794 2010.54 974.794 1947.2V160.076C974.794 96.7396 923.45 45.3948 860.113 45.3948H157.687Z" fill="var(--fill-0, black)"/>
+</g>
+<defs>
+<filter id="filter0_d_0_175" x="0" y="0" width="1017.8" height="2109.66" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset/>
+<feGaussianBlur stdDeviation="4.7784"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.6 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_0_175"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_0_175" result="shape"/>
+</filter>
+</defs>
+</svg>
