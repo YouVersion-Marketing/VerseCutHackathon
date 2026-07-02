@@ -33,17 +33,30 @@ function abs(deviceRect: Rect, local: Rect): Rect {
   return { x: deviceRect.x + local.x, y: deviceRect.y + local.y, w: local.w, h: local.h };
 }
 
+const MIN_TEXT_SIZE = 24;
+
 function drawText(ctx: CanvasRenderingContext2D, t: TemplateText, override?: string) {
   const text = override ?? t.text;
   ctx.save();
-  ctx.font = `${t.weight} ${t.size}px ${t.font}`;
   ctx.fillStyle = t.color;
   ctx.textBaseline = 'top';
   ctx.textAlign = t.align;
-  const lines = wrapLines((s) => ctx.measureText(s).width, text, t.rect.w);
+  // Auto-fit: the headline font is a substitute (Aktiv Grotesk is proprietary),
+  // so wrapping differs from Figma. Shrink the size until the wrapped lines fit
+  // the title box height, so text never overflows into the logo/device.
+  const ratio = t.lineHeight / t.size;
+  let size = t.size;
+  let lines = wrapLines((s) => ctx.measureText(s).width, text, t.rect.w);
+  while (size > MIN_TEXT_SIZE) {
+    ctx.font = `${t.weight} ${size}px ${t.font}`;
+    lines = wrapLines((s) => ctx.measureText(s).width, text, t.rect.w);
+    if (lines.length * size * ratio <= t.rect.h) break;
+    size -= 4;
+  }
+  const lineHeight = size * ratio;
   const anchorX =
     t.align === 'left' ? t.rect.x : t.align === 'right' ? t.rect.x + t.rect.w : t.rect.x + t.rect.w / 2;
-  lines.forEach((line, i) => ctx.fillText(line, anchorX, t.rect.y + i * t.lineHeight));
+  lines.forEach((line, i) => ctx.fillText(line, anchorX, t.rect.y + i * lineHeight));
   ctx.restore();
 }
 
