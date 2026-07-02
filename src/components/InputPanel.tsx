@@ -306,7 +306,7 @@ export function InputPanel({
             </div>
 
             <div>
-              <FieldLabel hint="Reusable backgrounds">Background library</FieldLabel>
+              <FieldLabel hint="Reusable backgrounds">Image library</FieldLabel>
               {sharedImg && (
                 <SelectedChip
                   icon={<ImageIcon />}
@@ -317,7 +317,7 @@ export function InputPanel({
               )}
               <BrowseEntry
                 icon={<ImageIcon />}
-                title="Browse the background library"
+                title="Browse the image library"
                 hint="Reusable team backgrounds"
                 onClick={() => onBrowse('images')}
               />

@@ -8,7 +8,7 @@ export type RightView = 'output' | 'videos' | 'images';
 const TABS: { id: RightView; label: string }[] = [
   { id: 'output', label: 'Preview' },
   { id: 'videos', label: 'Video library' },
-  { id: 'images', label: 'Background library' },
+  { id: 'images', label: 'Image library' },
 ];
 
 export function RightPanel({

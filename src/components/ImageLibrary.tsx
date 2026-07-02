@@ -13,7 +13,7 @@ import { LazyVideo } from './LazyVideo';
 type Studio = ReturnType<typeof useStudio>;
 
 // Right-panel browser for the team-shared library, scoped to one kind: the
-// "Background library" tab shows images, the "Video library" tab shows videos.
+// "Image library" tab shows images, the "Video library" tab shows videos.
 // Picking an asset sets it as the background and returns to the preview (onPicked).
 export function ImageLibrary({
   studio,
@@ -74,7 +74,7 @@ export function ImageLibrary({
 
   const selected = studio.sharedBg;
   const visible = assets.filter((a) => a.kind === kind);
-  const heading = kind === 'video' ? 'Video library' : 'Background library';
+  const heading = kind === 'video' ? 'Video library' : 'Image library';
   const subtitle = kind === 'video' ? 'Reusable videos' : 'Reusable team backgrounds';
 
   return (

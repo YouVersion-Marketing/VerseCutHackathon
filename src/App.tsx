@@ -138,7 +138,7 @@ export default function App({
                 onChange={(v) => setMobileLib(v as 'videos' | 'images')}
                 options={[
                   { value: 'videos', label: 'Video library' },
-                  { value: 'images', label: 'Background library' },
+                  { value: 'images', label: 'Image library' },
                 ]}
               />
             </div>
