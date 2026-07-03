@@ -45,6 +45,7 @@ model SharedAsset {
   language    String? // e.g. 'en' | 'es' | 'pt' | 'fr'
   category    String? // 'prerendered' | 'prerendered_bg' (YouVersion)
   orientation String? // 'portrait' | 'landscape'
+  audience    String? // 'kids' — child-friendly/illustrated; null = general
 
   @@index([kind])
   @@index([source])
