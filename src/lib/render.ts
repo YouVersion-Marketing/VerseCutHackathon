@@ -33,8 +33,6 @@ export interface RenderInput {
   musicFile?: File | null;
   /** Music gain 0..1 (defaults applied in the mixer). */
   musicVolume?: number;
-  /** Voiceover narration audio (from in-browser Kokoro TTS) to mix in. */
-  narrationBlob?: Blob | null;
   /** Background gradient preset id (used when no image/video background). */
   gradientId?: string | null;
 }
@@ -204,10 +202,9 @@ function buildAudioMix(opts: {
   video?: HTMLVideoElement | null;
   musicUrl?: string | null;
   musicVolume?: number;
-  narrationUrl?: string | null;
 }): { track: MediaStreamTrack; start: () => void; cleanup: () => void } | null {
-  const { video, musicUrl, narrationUrl } = opts;
-  if (!video && !musicUrl && !narrationUrl) return null;
+  const { video, musicUrl } = opts;
+  if (!video && !musicUrl) return null;
   try {
     const AC: typeof AudioContext =
       window.AudioContext ||
@@ -228,16 +225,6 @@ function buildAudioMix(opts: {
       disconnects.push(() => s.disconnect());
     }
 
-    if (narrationUrl) {
-      const el = new Audio();
-      el.src = narrationUrl;
-      el.crossOrigin = 'anonymous';
-      const s = ctx.createMediaElementSource(el);
-      s.connect(dest); // voiceover at full volume
-      disconnects.push(() => s.disconnect());
-      playables.push(el);
-    }
-
     if (musicUrl) {
       const el = new Audio();
       el.src = musicUrl;
@@ -245,8 +232,8 @@ function buildAudioMix(opts: {
       el.crossOrigin = 'anonymous';
       const s = ctx.createMediaElementSource(el);
       const gain = ctx.createGain();
-      // Duck music further when a voiceover is present.
-      gain.gain.value = opts.musicVolume ?? (narrationUrl ? 0.14 : video ? 0.35 : 0.8);
+      // Duck ambient music under a background video's own audio.
+      gain.gain.value = opts.musicVolume ?? (video ? 0.35 : 0.8);
       s.connect(gain).connect(dest);
       disconnects.push(() => {
         s.disconnect();
@@ -306,13 +293,11 @@ async function captureCanvas(
   let audioCleanup: (() => void) | null = null;
   let startAudio: (() => void) | null = null;
   const musicUrl = input.musicFile ? URL.createObjectURL(input.musicFile) : null;
-  const narrationUrl = input.narrationBlob ? URL.createObjectURL(input.narrationBlob) : null;
   if (background.type === 'video') background.video.currentTime = 0;
   const mix = buildAudioMix({
     video: background.type === 'video' ? background.video : null,
     musicUrl,
     musicVolume: input.musicVolume,
-    narrationUrl,
   });
   if (mix) {
     stream.addTrack(mix.track);
@@ -320,7 +305,6 @@ async function captureCanvas(
     audioCleanup = () => {
       mix.cleanup();
       if (musicUrl) URL.revokeObjectURL(musicUrl);
-      if (narrationUrl) URL.revokeObjectURL(narrationUrl);
     };
   }
   if (background.type === 'video') await background.video.play().catch(() => {});

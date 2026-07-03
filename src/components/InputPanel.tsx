@@ -349,40 +349,6 @@ export function InputPanel({
                   onClear={() => studio.setMusicFile(null)}
                 />
               </div>
-
-              {studio.voiceSupportedForLang && (
-                <div className="@[560px]:col-span-2">
-                  <FieldLabel hint="In-browser AI narration">Voiceover</FieldLabel>
-                  <Segmented
-                    value={studio.voiceover ? 'on' : 'off'}
-                    onChange={(v) => studio.setVoiceover(v === 'on')}
-                    options={[
-                      { value: 'off', label: 'Off' },
-                      { value: 'on', label: 'On' },
-                    ]}
-                  />
-                  {studio.voiceover && (
-                    <>
-                      <div className="mt-3">
-                        <Select
-                          value={studio.voiceId ?? ''}
-                          onChange={studio.setVoice}
-                          options={studio.voices.map((v) => ({ value: v.id, label: v.label }))}
-                        />
-                      </div>
-                      {studio.ttsStatus.status === 'loading' && (
-                        <p className="mt-2 text-[12px] text-faint">
-                          Downloading voice model… {studio.ttsStatus.pct}%
-                        </p>
-                      )}
-                      <p className="mt-2 text-[12px] text-faint">
-                        Reads the verse aloud and ducks the music under it. The voice model
-                        (~80&nbsp;MB) downloads once, then is cached.
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
             </div>
           </CollapsibleSection>
         )}

@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { defaultCta } from './cta';
 import { SOCIAL_FORMAT_BY_ID } from './socialFormats';
-import { synthesize, preloadTts, ttsState, hasWebGPU } from './tts';
-import { defaultVoice, voiceSupported, VOICES } from './voices';
 import { ASPECT_DIMENSIONS, config, type AspectRatio, type OutputFormat } from '../config';
 import { GRADIENTS, DEFAULT_GRADIENT_ID } from './gradients';
 import { getBibleProvider, type BibleVersion, type Book, type Language } from './bible';
@@ -59,8 +57,6 @@ interface JobSnapshot {
   fromVerse: number;
   toVerse: number;
   format: OutputFormat;
-  useVoiceover: boolean;
-  voiceId: string | null;
   durationSec: number;
   render: {
     aspect: AspectRatio;
@@ -118,9 +114,6 @@ export function useStudio() {
   const [logoStyle, setLogoStyle] = useState<LogoStyle>(config.brand.defaultLogoStyle);
   const [musicFile, setMusicFile] = useState<File | null>(null);
   const [gradientId, setGradientId] = useState<string>(DEFAULT_GRADIENT_ID);
-  const [voiceover, setVoiceoverState] = useState(false);
-  const [voiceId, setVoiceId] = useState<string | null>(null);
-  const voiceTouched = useRef(false);
   const [template, setTemplate] = useState<'classic' | 'promo'>('classic');
   const [cta, setCtaState] = useState<string>(defaultCta('en'));
   const ctaTouched = useRef(false);
@@ -206,48 +199,6 @@ export function useStudio() {
   useEffect(() => {
     if (!ctaTouched.current) setCtaState(defaultCta(languageCode));
   }, [languageCode]);
-
-  const voiceSupportedForLang = voiceSupported(languageCode);
-  const voices = useMemo(() => {
-    const base = languageCode.split(/[-_]/)[0];
-    return VOICES.filter((v) => v.lang === base);
-  }, [languageCode]);
-
-  // On language change, reset to that language's default Kokoro voice (a voice
-  // picked for the previous language doesn't apply here). If the new language
-  // isn't covered, disable voiceover.
-  useEffect(() => {
-    voiceTouched.current = false;
-    setVoiceId(defaultVoice(languageCode));
-    if (!voiceSupported(languageCode)) setVoiceoverState(false);
-  }, [languageCode]);
-
-  const setVoice = useCallback((id: string) => {
-    voiceTouched.current = true;
-    setVoiceId(id);
-  }, []);
-
-  // Toggling voiceover on kicks off the (cached) model download early.
-  const setVoiceover = useCallback((on: boolean) => {
-    setVoiceoverState(on);
-    if (on) preloadTts();
-  }, []);
-
-  // ttsState() reads module-level mutable vars, so mirror it into React state
-  // and poll while the model loads — otherwise the download progress UI never
-  // updates.
-  const [ttsStatus, setTtsStatus] = useState(() => ttsState());
-  useEffect(() => {
-    if (!voiceover) return;
-    let timer: ReturnType<typeof setTimeout>;
-    const tick = () => {
-      const s = ttsState();
-      setTtsStatus((prev) => (prev.status === s.status && prev.pct === s.pct ? prev : s));
-      if (s.status === 'idle' || s.status === 'loading') timer = setTimeout(tick, 250);
-    };
-    tick();
-    return () => clearTimeout(timer);
-  }, [voiceover]);
 
   const currentBook = books.find((b) => b.id === bookId);
   const maxChapter = currentBook?.chapters ?? 150;
@@ -376,27 +327,11 @@ export function useStudio() {
           versionAbbr: passage.versionAbbreviation,
         });
 
-        let narrationBlob: Blob | null = null;
-        let effectiveDuration = snap.durationSec;
-        if (snap.useVoiceover && snap.voiceId) {
-          patchJobStage(id, 'voice', { status: 'active' });
-          const narration = await synthesize(
-            `${passage.text} ${passage.reference}`,
-            snap.voiceId,
-            (pct) => patchJobStage(id, 'voice', { progress: pct / 100 }),
-          );
-          narrationBlob = narration.blob;
-          // Give the verse room to finish, plus a short tail.
-          effectiveDuration = Math.max(snap.durationSec, Math.ceil(narration.durationSec) + 1);
-          patchJobStage(id, 'voice', { status: 'done', progress: 1 });
-        }
-
         patchJobStage(id, 'compose', { status: 'active' });
         const input = {
           ...snap.render,
           passage,
-          durationSec: effectiveDuration,
-          narrationBlob,
+          durationSec: snap.durationSec,
         };
 
         let result: RenderedAsset;
@@ -453,32 +388,20 @@ export function useStudio() {
   }, [runJob]);
 
   // Rough build-time estimate (seconds) shown before Generate. Video capture is
-  // real-time, so duration dominates; voiceover adds a one-time model download
-  // (cached after first run) plus synthesis.
+  // real-time, so duration dominates.
   const estimateSec = useMemo(() => {
     if (format === 'image') return 3;
-    const useVoiceover = voiceover && !!voiceId && voiceSupportedForLang;
-    let s = durationSec + 3; // real-time capture + encode
-    if (useVoiceover) {
-      if (ttsStatus.status !== 'ready') s += hasWebGPU() ? 20 : 35; // model download/warmup
-      s += hasWebGPU() ? 6 : 12; // synthesis
-    }
-    return Math.round(s);
-  }, [format, durationSec, voiceover, voiceId, voiceSupportedForLang, ttsStatus.status]);
+    return Math.round(durationSec + 3); // real-time capture + encode
+  }, [format, durationSec]);
 
   const generate = useCallback(() => {
     if (!canGenerate) return;
     const id = `job-${(jobSeq.current += 1)}`;
-    const useVoiceover =
-      format === 'video' && voiceover && !!voiceId && voiceSupportedForLang;
     const composeLabel =
       format === 'video' ? 'Compositing frames' : 'Compositing layers';
     const renderLabel = format === 'video' ? 'Encoding MP4' : 'Exporting image';
     const stages: Stage[] = [
       { id: 'fetch', label: 'Fetching verse', status: 'pending' },
-      ...(useVoiceover
-        ? [{ id: 'voice', label: 'Synthesizing voiceover', status: 'pending' as const }]
-        : []),
       { id: 'compose', label: composeLabel, status: 'pending' },
       { id: 'render', label: renderLabel, status: 'pending' },
     ];
@@ -494,8 +417,6 @@ export function useStudio() {
       fromVerse,
       toVerse,
       format,
-      useVoiceover,
-      voiceId,
       durationSec,
       render: {
         aspect,
@@ -569,9 +490,6 @@ export function useStudio() {
     durationSec,
     musicFile,
     gradientId,
-    voiceover,
-    voiceId,
-    voiceSupportedForLang,
     estimateSec,
     pump,
   ]);
@@ -640,14 +558,6 @@ export function useStudio() {
     gradients: GRADIENTS,
     gradientId,
     setGradientId,
-    // voiceover
-    voiceover,
-    setVoiceover,
-    voiceId,
-    setVoice,
-    voices,
-    voiceSupportedForLang,
-    ttsStatus,
     estimateSec,
     // generation (background job queue)
     jobs,
