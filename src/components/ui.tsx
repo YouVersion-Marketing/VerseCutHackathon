@@ -83,11 +83,13 @@ export function CollapsibleSection({
   open,
   onToggle,
   children,
+  summary,
 }: {
   title: string;
   open: boolean;
   onToggle: () => void;
   children: ReactNode;
+  summary?: ReactNode;
 }) {
   return (
     <div className="mb-2">
@@ -97,9 +99,12 @@ export function CollapsibleSection({
         aria-expanded={open}
         className="mb-5 mt-1 flex w-full items-center gap-3"
       >
-        <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-faint">
+        <span className="shrink-0 text-[11px] font-bold uppercase tracking-[0.14em] text-faint">
           {title}
         </span>
+        {!open && summary != null && (
+          <span className="truncate text-[12px] font-medium normal-case text-faint">{summary}</span>
+        )}
         <span className="h-px flex-1 bg-line" />
         <ChevronDown className={`text-faint transition ${open ? '' : '-rotate-90'}`} />
       </button>

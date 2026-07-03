@@ -5,7 +5,15 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'VerseCut — YouVersion',
   description: 'Create Bible-verse marketing assets — video and static image ads.',
-  icons: { icon: '/assets/icons/bible-app/icon-only/en.svg' },
+  icons: {
+    icon: '/assets/icons/bible-app/icon-only/en.svg',
+    apple: '/icons/apple-touch-icon.png',
+  },
+  appleWebApp: {
+    capable: true,
+    title: 'VerseCut',
+    statusBarStyle: 'default',
+  },
 };
 
 export const viewport: Viewport = {
