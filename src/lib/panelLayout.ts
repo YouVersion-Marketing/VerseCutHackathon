@@ -37,7 +37,7 @@ export function writeStoredWidth(px: number): void {
   }
 }
 
-export type SectionKey = 'content' | 'background' | 'audio' | 'branding';
+export type SectionKey = 'content' | 'background' | 'audio' | 'branding' | 'output';
 export type SectionState = Record<SectionKey, boolean>;
 
 export const DEFAULT_SECTIONS: SectionState = {
@@ -45,6 +45,7 @@ export const DEFAULT_SECTIONS: SectionState = {
   background: true,
   audio: false,
   branding: false,
+  output: true,
 };
 
 export function resolveSections(stored: Partial<SectionState> | null): SectionState {
@@ -54,6 +55,7 @@ export function resolveSections(stored: Partial<SectionState> | null): SectionSt
     background: stored.background ?? DEFAULT_SECTIONS.background,
     audio: stored.audio ?? DEFAULT_SECTIONS.audio,
     branding: stored.branding ?? DEFAULT_SECTIONS.branding,
+    output: stored.output ?? DEFAULT_SECTIONS.output,
   };
 }
 

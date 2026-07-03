@@ -176,6 +176,9 @@ export function InputPanel({
     });
   const showAudio = studio.format === 'video';
   const showBranding = studio.template === 'classic';
+  const outputSummary = `${studio.format === 'video' ? 'Video' : 'Image'} · ${studio.aspect} · ${
+    studio.format === 'video' ? `${studio.durationSec}s` : studio.imageFormat.toUpperCase()
+  }`;
 
   return (
     <div className="flex h-full flex-col">
@@ -412,93 +415,100 @@ export function InputPanel({
         )}
       </div>
 
-      {/* Sticky footer: format + aspect + generate */}
+      {/* Sticky footer: collapsible output settings + generate */}
       <div className="border-t border-line bg-surface px-7 pt-4 pb-5">
-        {space === 'social' && (
-          <div className="mb-4">
-            <div className="mb-2 text-[15px] font-semibold text-ink">Platform</div>
-            <Select
-              value={studio.platform ?? ''}
-              onChange={studio.selectPlatform}
-              placeholder="Choose a platform"
-              options={SOCIAL_FORMATS.map((f) => ({
-                value: f.id,
-                label: `${f.label} · ${f.aspect}`,
-              }))}
-            />
+        <CollapsibleSection
+          title="Output"
+          summary={outputSummary}
+          open={sections.output}
+          onToggle={() => toggle('output')}
+        >
+          {space === 'social' && (
+            <div className="mb-4">
+              <div className="mb-2 text-[15px] font-semibold text-ink">Platform</div>
+              <Select
+                value={studio.platform ?? ''}
+                onChange={studio.selectPlatform}
+                placeholder="Choose a platform"
+                options={SOCIAL_FORMATS.map((f) => ({
+                  value: f.id,
+                  label: `${f.label} · ${f.aspect}`,
+                }))}
+              />
+            </div>
+          )}
+          <div className="mb-4 flex flex-wrap gap-x-6 gap-y-4">
+            <div className="min-w-[170px] flex-1">
+              <div className="mb-2 text-[15px] font-semibold text-ink">Output format</div>
+              <Segmented
+                value={studio.format}
+                onChange={studio.setFormat}
+                options={[
+                  {
+                    value: 'video',
+                    label: (
+                      <>
+                        <VideoIcon width={16} height={16} /> Video ad
+                      </>
+                    ),
+                  },
+                  {
+                    value: 'image',
+                    label: (
+                      <>
+                        <ImageIcon width={16} height={16} /> Static image
+                      </>
+                    ),
+                  },
+                ]}
+              />
+            </div>
+            <div className="min-w-[170px] flex-1">
+              <div className="mb-2 text-[15px] font-semibold text-ink">Aspect ratio</div>
+              <Segmented
+                value={studio.aspect}
+                onChange={studio.setAspect}
+                options={[
+                  { value: '16:9', label: '16:9' },
+                  { value: '1:1', label: '1:1' },
+                  { value: '4:5', label: '4:5' },
+                  { value: '9:16', label: '9:16' },
+                ]}
+              />
+            </div>
           </div>
-        )}
-        <div className="mb-4 flex flex-wrap gap-x-6 gap-y-4">
-          <div className="min-w-[170px] flex-1">
-            <div className="mb-2 text-[15px] font-semibold text-ink">Output format</div>
-            <Segmented
-              value={studio.format}
-              onChange={studio.setFormat}
-              options={[
-                {
-                  value: 'video',
-                  label: (
-                    <>
-                      <VideoIcon width={16} height={16} /> Video ad
-                    </>
-                  ),
-                },
-                {
-                  value: 'image',
-                  label: (
-                    <>
-                      <ImageIcon width={16} height={16} /> Static image
-                    </>
-                  ),
-                },
-              ]}
-            />
-          </div>
-          <div className="min-w-[170px] flex-1">
-            <div className="mb-2 text-[15px] font-semibold text-ink">Aspect ratio</div>
-            <Segmented
-              value={studio.aspect}
-              onChange={studio.setAspect}
-              options={[
-                { value: '16:9', label: '16:9' },
-                { value: '1:1', label: '1:1' },
-                { value: '4:5', label: '4:5' },
-                { value: '9:16', label: '9:16' },
-              ]}
-            />
-          </div>
-        </div>
 
-        {studio.format === 'image' ? (
-          <div className="mb-4 flex items-center gap-3">
-            <span className="text-[13px] font-semibold text-ink">File type</span>
-            <div className="w-[180px]">
-              <Segmented
-                value={studio.imageFormat}
-                onChange={studio.setImageFormat}
-                options={[
-                  { value: 'png', label: 'PNG' },
-                  { value: 'jpg', label: 'JPG' },
-                ]}
-              />
+          {studio.format === 'image' ? (
+            <div className="flex items-center gap-3">
+              <span className="text-[13px] font-semibold text-ink">File type</span>
+              <div className="w-[180px]">
+                <Segmented
+                  value={studio.imageFormat}
+                  onChange={studio.setImageFormat}
+                  options={[
+                    { value: 'png', label: 'PNG' },
+                    { value: 'jpg', label: 'JPG' },
+                  ]}
+                />
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="mb-4 flex items-center gap-3">
-            <span className="text-[13px] font-semibold text-ink">Length</span>
-            <div className="w-[230px]">
-              <Segmented
-                value={String(studio.durationSec)}
-                onChange={(v) => studio.setDurationSec(Number(v))}
-                options={[
-                  { value: '6', label: '6s' },
-                  { value: '10', label: '10s' },
-                  { value: '15', label: '15s' },
-                ]}
-              />
+          ) : (
+            <div className="flex items-center gap-3">
+              <span className="text-[13px] font-semibold text-ink">Length</span>
+              <div className="w-[230px]">
+                <Segmented
+                  value={String(studio.durationSec)}
+                  onChange={(v) => studio.setDurationSec(Number(v))}
+                  options={[
+                    { value: '6', label: '6s' },
+                    { value: '10', label: '10s' },
+                    { value: '15', label: '15s' },
+                  ]}
+                />
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </CollapsibleSection>
 
         <p className="mb-2 text-center text-[12px] text-faint">
           Estimated build time: ~{studio.estimateSec}s
@@ -507,10 +517,10 @@ export function InputPanel({
 
         <Button
           variant="primary"
-          size="lg"
+          size="md"
           onClick={studio.generate}
           disabled={!studio.canGenerate}
-          className="w-full"
+          className="w-full md:h-14 md:px-6 md:text-[16px]"
         >
           {rendering ? (
             <>
