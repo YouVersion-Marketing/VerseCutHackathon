@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'VerseCut — YouVersion',
   description: 'Create Bible-verse marketing assets — video and static image ads.',
   icons: {
-    icon: '/assets/icons/bible-app/icon-only/en.svg',
+    icon: '/icon.svg',
     apple: '/icons/apple-touch-icon.png',
   },
   appleWebApp: {

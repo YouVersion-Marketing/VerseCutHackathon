@@ -15,7 +15,6 @@ import { Segmented } from './components/ui';
 import { Menu } from './components/icons';
 import { type MobileView } from './lib/mobileNav';
 import { useStudio } from './lib/useStudio';
-import { resolveLogoFile } from './lib/logoAssets';
 import { DEFAULT_PANEL_WIDTH, readStoredWidth, writeStoredWidth } from './lib/panelLayout';
 
 const STATUS: Record<string, { label: string; dot: string }> = {
@@ -50,18 +49,13 @@ export default function App({
     if (stored !== null) setLeftWidth(stored);
   }, []);
 
-  const langIcon = resolveLogoFile('icon-only', studio.languageCode);
-  const headerLogo = langIcon
-    ? `${config.brand.logoBaseDir}/icon-only/${langIcon}`
-    : config.brand.logoPath;
-
   return (
     <div className="flex h-dvh flex-col bg-surface">
       {/* Header */}
       <header className="shrink-0 border-b border-line">
         {/* Mobile header (<md) */}
         <div className="flex items-center justify-between gap-2 px-4 py-2.5 md:hidden">
-          <img src={headerLogo} alt="" className="h-8 w-8 shrink-0 rounded-[10px]" />
+          <img src="/icon.svg" alt="" className="h-8 w-8 shrink-0 rounded-[10px]" />
           <div className="min-w-0 flex-1 overflow-x-auto">
             <SpaceSwitcher />
           </div>
@@ -77,7 +71,7 @@ export default function App({
         {/* Desktop header (≥md) */}
         <div className="hidden items-center justify-between px-7 py-3.5 md:flex">
           <div className="flex items-center gap-3">
-            <img src={headerLogo} alt="" className="h-9 w-9 rounded-[11px]" />
+            <img src="/icon.svg" alt="" className="h-9 w-9 rounded-[11px]" />
             <div className="leading-tight">
               <div className="text-[15px] font-extrabold tracking-tight text-ink">
                 {config.brand.name}
