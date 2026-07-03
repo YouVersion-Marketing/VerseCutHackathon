@@ -7,20 +7,15 @@ import {
   type SharedAsset,
 } from '../lib/library';
 import { Play, Spinner, UploadCloud, XMark } from './icons';
-import { Button, Segmented } from './ui';
+import { Button, Segmented, Select } from './ui';
 import { LazyVideo } from './LazyVideo';
 
 type Studio = ReturnType<typeof useStudio>;
 type LibrarySource = 'youversion' | 'unsplash';
-type CatFilter = 'all' | 'prerendered_bg' | 'prerendered';
+type CatFilter = 'all' | 'prerendered_bg' | 'prerendered' | 'kids';
 type OrientFilter = 'all' | 'portrait' | 'landscape';
+type LangFilter = 'all' | 'en' | 'es' | 'pt' | 'fr';
 
-const LANG_NAMES: Record<string, string> = {
-  en: 'English',
-  es: 'Spanish',
-  pt: 'Portuguese',
-  fr: 'French',
-};
 
 // Right-panel browser for the team-shared library, scoped by tab:
 // YouVersion (verse backgrounds, grouped by language + category/orientation
@@ -43,6 +38,7 @@ export function ImageLibrary({
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [cat, setCat] = useState<CatFilter>('all');
   const [orient, setOrient] = useState<OrientFilter>('all');
+  const [lang, setLang] = useState<LangFilter>('all');
   const inputRef = useRef<HTMLInputElement>(null);
 
   function refresh() {
@@ -92,7 +88,9 @@ export function ImageLibrary({
 
   let visible = assets.filter((a) => a.kind === kind && (!source || a.source === source));
   if (isYouVersion) {
-    if (cat !== 'all') visible = visible.filter((a) => a.category === cat);
+    if (lang !== 'all') visible = visible.filter((a) => (a.language || 'other') === lang);
+    if (cat === 'kids') visible = visible.filter((a) => a.audience === 'kids');
+    else if (cat !== 'all') visible = visible.filter((a) => a.category === cat);
     if (orient !== 'all') visible = visible.filter((a) => a.orientation === orient);
   }
 
@@ -165,11 +163,6 @@ export function ImageLibrary({
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{list.map(card)}</div>
   );
 
-  // For YouVersion, group the visible assets by language.
-  const languages = isYouVersion
-    ? Array.from(new Set(visible.map((a) => a.language || 'other')))
-    : [];
-
   return (
     <div className="scroll-slim h-full overflow-y-auto px-8 py-6">
       <div className="mb-4 flex items-baseline justify-between">
@@ -203,29 +196,43 @@ export function ImageLibrary({
       )}
 
       {isYouVersion && (
-        <div className="mb-4 flex flex-wrap gap-3">
-          <div className="min-w-[240px] flex-1">
-            <Segmented
-              value={cat}
-              onChange={(v) => setCat(v as CatFilter)}
-              options={[
-                { value: 'all', label: 'All' },
-                { value: 'prerendered_bg', label: 'Backgrounds' },
-                { value: 'prerendered', label: 'Verse images' },
-              ]}
-            />
+        <div className="mb-4 flex flex-col gap-3">
+          <div className="flex flex-wrap gap-3">
+            <div className="min-w-[150px] flex-1">
+              <Select
+                value={lang}
+                onChange={(v) => setLang(v as LangFilter)}
+                options={[
+                  { value: 'all', label: 'All languages' },
+                  { value: 'en', label: 'English' },
+                  { value: 'es', label: 'Spanish' },
+                  { value: 'pt', label: 'Portuguese' },
+                  { value: 'fr', label: 'French' },
+                ]}
+              />
+            </div>
+            <div className="min-w-[150px] flex-1">
+              <Select
+                value={cat}
+                onChange={(v) => setCat(v as CatFilter)}
+                options={[
+                  { value: 'all', label: 'All types' },
+                  { value: 'prerendered_bg', label: 'Backgrounds' },
+                  { value: 'prerendered', label: 'Verse images' },
+                  { value: 'kids', label: 'Kids' },
+                ]}
+              />
+            </div>
           </div>
-          <div className="min-w-[200px] flex-1">
-            <Segmented
-              value={orient}
-              onChange={(v) => setOrient(v as OrientFilter)}
-              options={[
-                { value: 'all', label: 'All' },
-                { value: 'portrait', label: 'Portrait' },
-                { value: 'landscape', label: 'Landscape' },
-              ]}
-            />
-          </div>
+          <Segmented
+            value={orient}
+            onChange={(v) => setOrient(v as OrientFilter)}
+            options={[
+              { value: 'all', label: 'All' },
+              { value: 'portrait', label: 'Portrait' },
+              { value: 'landscape', label: 'Landscape' },
+            ]}
+          />
         </div>
       )}
 
@@ -246,16 +253,16 @@ export function ImageLibrary({
         </p>
       )}
 
-      {isYouVersion
-        ? languages.map((lang) => (
-            <div key={lang} className="mb-6">
-              <h3 className="mb-3 text-[13px] font-bold uppercase tracking-[0.14em] text-faint">
-                {LANG_NAMES[lang] ?? lang}
-              </h3>
-              {grid(visible.filter((a) => (a.language || 'other') === lang))}
-            </div>
-          ))
-        : visible.length > 0 && grid(visible)}
+      {visible.length > 0 && (
+        <>
+          {isYouVersion && (
+            <p className="mb-3 text-[12px] font-medium text-faint">
+              {visible.length} {visible.length === 1 ? 'image' : 'images'}
+            </p>
+          )}
+          {grid(visible)}
+        </>
+      )}
     </div>
   );
 }

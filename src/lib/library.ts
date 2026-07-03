@@ -74,6 +74,7 @@ export interface SharedAsset {
   language?: string | null;
   category?: string | null;
   orientation?: string | null;
+  audience?: string | null;
 }
 
 export async function listSharedAssets(): Promise<SharedAsset[]> {
