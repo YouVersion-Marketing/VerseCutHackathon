@@ -56,7 +56,7 @@ export function ProductLibrary() {
                   className="overflow-hidden rounded-xl border border-line bg-black"
                 >
                   <div className={v.orientation === 'portrait' ? 'aspect-[9/16]' : 'aspect-video'}>
-                    <LazyVideo src={v.fileUrl} />
+                    <LazyVideo src={v.fileUrl} controls className="h-full w-full object-contain" />
                   </div>
                   <div className="bg-surface px-2 py-1.5 text-[11px] font-medium text-muted">
                     {v.length} · {v.lang} · {v.orientation}
