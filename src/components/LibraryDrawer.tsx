@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { deleteMyAd, listMyAds, type SavedAd } from '../lib/library';
 import { Download, Spinner, Trash, XMark } from './icons';
 import { Select } from './ui';
+import { LazyVideo } from './LazyVideo';
 
 type SortKey = 'newest' | 'oldest' | 'title';
 
@@ -56,6 +57,15 @@ export function LibraryDrawer({ open, onClose }: { open: boolean; onClose: () =>
       active = false;
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const h = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', h);
+    return () => document.removeEventListener('keydown', h);
+  }, [open, onClose]);
 
   if (!open) return null;
 
@@ -124,9 +134,9 @@ export function LibraryDrawer({ open, onClose }: { open: boolean; onClose: () =>
                 <div key={ad.id} className="overflow-hidden rounded-xl border border-line">
                   <div className="aspect-square bg-black">
                     {ad.format === 'video' ? (
-                      <video src={ad.fileUrl} className="h-full w-full object-contain" muted loop />
+                      <LazyVideo src={ad.fileUrl} />
                     ) : (
-                      <img src={ad.fileUrl} alt="" className="h-full w-full object-contain" />
+                      <img src={ad.fileUrl} alt="" loading="lazy" className="h-full w-full object-contain" />
                     )}
                   </div>
                   <div className="flex items-center justify-between gap-2 p-2.5">

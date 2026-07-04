@@ -81,6 +81,9 @@ function SelectedChip({
 
 function GradientPicker({ studio }: { studio: Studio }) {
   const [open, setOpen] = useState(false);
+  // Draft for the hex text field so the user can type freely; null = mirror the
+  // committed custom color (reflects the color picker / Clear).
+  const [hexDraft, setHexDraft] = useState<string | null>(null);
   const isCustom = !!studio.customColor;
   const customPreset = studio.customColor ? gradientFromHex(studio.customColor) : null;
   const current =
@@ -153,11 +156,13 @@ function GradientPicker({ studio }: { studio: Studio }) {
                 type="text"
                 spellCheck={false}
                 placeholder="#1e40af"
-                defaultValue={studio.customColor ?? ''}
+                value={hexDraft ?? studio.customColor ?? ''}
                 onChange={(e) => {
+                  setHexDraft(e.target.value);
                   const hex = normalizeHex(e.target.value);
                   if (hex) studio.setCustomColor(hex);
                 }}
+                onBlur={() => setHexDraft(null)}
                 className="mt-0.5 w-28 rounded-md border border-line bg-surface px-2 py-1 text-[13px] font-medium text-ink outline-none focus:border-brand"
               />
             </div>

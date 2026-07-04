@@ -24,7 +24,13 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Everything except Next internals, public assets, and the media stream.
-    '/((?!_next/static|_next/image|favicon\\.ico|assets/|yvmedia/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp4|webm|ico)$).*)',
+    // API routes ALWAYS run middleware (auth). Listed explicitly so the media-
+    // extension exclusion below can't open an unauthenticated path to the
+    // credentialed upstream proxies (e.g. /api/yvv/…/foo.mp4).
+    '/api/(.*)',
+    // Everything else except Next internals, public assets, the media stream,
+    // and static media files (which are served without auth). `api/` is excluded
+    // here because it's covered by the explicit matcher above.
+    '/((?!_next/static|_next/image|favicon\\.ico|assets/|yvmedia/|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp4|webm|ico)$).*)',
   ],
 };

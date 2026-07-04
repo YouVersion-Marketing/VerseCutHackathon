@@ -122,7 +122,7 @@ export class YouVersionPlatformProvider implements BibleProvider {
 
     return {
       reference: data.reference,
-      text: data.content.replace(/\s+/g, ' ').trim(),
+      text: (data.content ?? '').replace(/\s+/g, ' ').trim(),
       versionAbbreviation: abbr,
     };
   }

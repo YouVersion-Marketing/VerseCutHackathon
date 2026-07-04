@@ -137,30 +137,35 @@ export async function renderImage(input: RenderInput): Promise<RenderedAsset> {
   canvas.height = input.dimensions.height;
   const ctx = canvas.getContext('2d')!;
 
-  composeFrame(ctx, {
-    width: canvas.width,
-    height: canvas.height,
-    verseText: input.passage.text,
-    reference: input.passage.reference,
-    versionAbbreviation: input.passage.versionAbbreviation,
-    background,
-    logo,
-    verseFont,
-    template: input.template,
-    cta: input.cta ?? undefined,
-    logoPlate: input.template !== 'promo' && input.logoStyle === 'logo-light',
-    t: 1,
-  });
-
   const mime = input.mimeType ?? 'image/png';
-  const blob: Blob = await new Promise((resolve, reject) =>
-    canvas.toBlob(
-      (b) => (b ? resolve(b) : reject(new Error('Canvas export failed'))),
-      mime,
-      0.95,
-    ),
-  );
-  cleanup();
+  let blob: Blob;
+  // Ensure the background object URL is revoked even if compose/export throws.
+  try {
+    composeFrame(ctx, {
+      width: canvas.width,
+      height: canvas.height,
+      verseText: input.passage.text,
+      reference: input.passage.reference,
+      versionAbbreviation: input.passage.versionAbbreviation,
+      background,
+      logo,
+      verseFont,
+      template: input.template,
+      cta: input.cta ?? undefined,
+      logoPlate: input.template !== 'promo' && input.logoStyle === 'logo-light',
+      t: 1,
+    });
+
+    blob = await new Promise((resolve, reject) =>
+      canvas.toBlob(
+        (b) => (b ? resolve(b) : reject(new Error('Canvas export failed'))),
+        mime,
+        0.95,
+      ),
+    );
+  } finally {
+    cleanup();
+  }
 
   return {
     blob,
@@ -308,77 +313,84 @@ async function captureCanvas(
   const stream = canvas.captureStream(fps);
 
   // Mix background-video audio and/or ambient music into one captured track.
-  let audioCleanup: (() => void) | null = null;
-  let startAudio: (() => void) | null = null;
   const musicUrl = input.musicFile ? URL.createObjectURL(input.musicFile) : null;
   const narrationUrl = input.narrationBlob ? URL.createObjectURL(input.narrationBlob) : null;
   if (background.type === 'video') background.video.currentTime = 0;
-  const mix = buildAudioMix({
-    video: background.type === 'video' ? background.video : null,
-    musicUrl,
-    musicVolume: input.musicVolume,
-    narrationUrl,
-  });
-  if (mix) {
-    stream.addTrack(mix.track);
-    startAudio = mix.start;
-    audioCleanup = () => {
-      mix.cleanup();
-      if (musicUrl) URL.revokeObjectURL(musicUrl);
-      if (narrationUrl) URL.revokeObjectURL(narrationUrl);
-    };
-  }
-  if (background.type === 'video') await background.video.play().catch(() => {});
 
-  const recorder = new MediaRecorder(stream, {
-    mimeType,
-    videoBitsPerSecond: 10_000_000,
-    audioBitsPerSecond: 128_000,
-  });
-  const chunks: BlobPart[] = [];
-  recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+  let mix: ReturnType<typeof buildAudioMix> = null;
+  let recorder: MediaRecorder | null = null;
+  // Guarantee teardown (AudioContext, background video, object URLs, recorder)
+  // even if MediaRecorder construction, playback, or a frame draw throws.
+  try {
+    mix = buildAudioMix({
+      video: background.type === 'video' ? background.video : null,
+      musicUrl,
+      musicVolume: input.musicVolume,
+      narrationUrl,
+    });
+    if (mix) stream.addTrack(mix.track);
+    if (background.type === 'video') await background.video.play().catch(() => {});
 
-  const done = new Promise<Blob>((resolve) => {
-    recorder.onstop = () => resolve(new Blob(chunks, { type: mimeType }));
-  });
+    recorder = new MediaRecorder(stream, {
+      mimeType,
+      videoBitsPerSecond: 10_000_000,
+      audioBitsPerSecond: 128_000,
+    });
+    const rec = recorder;
+    const chunks: BlobPart[] = [];
+    rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
 
-  recorder.start();
-  startAudio?.();
-  const start = performance.now();
+    const done = new Promise<Blob>((resolve) => {
+      // Resolve on error too, so a recorder failure can't hang `await done`.
+      rec.onstop = () => resolve(new Blob(chunks, { type: mimeType }));
+      rec.onerror = () => resolve(new Blob(chunks, { type: mimeType }));
+    });
 
-  await new Promise<void>((resolve) => {
-    const tick = () => {
-      const elapsed = performance.now() - start;
-      const t = Math.min(1, elapsed / durationMs);
-      composeFrame(ctx, {
-        width,
-        height,
-        verseText: input.passage.text,
-        reference: input.passage.reference,
-        versionAbbreviation: input.passage.versionAbbreviation,
-        background,
-        logo,
-        verseFont,
-        template: input.template,
-        cta: input.cta ?? undefined,
-        logoPlate: input.template !== 'promo' && input.logoStyle === 'logo-light',
-        t,
-      });
-      onProgress(t);
-      if (elapsed >= durationMs) {
-        resolve();
-        return;
-      }
+    rec.start();
+    mix?.start();
+    const start = performance.now();
+
+    await new Promise<void>((resolve, reject) => {
+      const tick = () => {
+        try {
+          const elapsed = performance.now() - start;
+          const t = Math.min(1, elapsed / durationMs);
+          composeFrame(ctx, {
+            width,
+            height,
+            verseText: input.passage.text,
+            reference: input.passage.reference,
+            versionAbbreviation: input.passage.versionAbbreviation,
+            background,
+            logo,
+            verseFont,
+            template: input.template,
+            cta: input.cta ?? undefined,
+            logoPlate: input.template !== 'promo' && input.logoStyle === 'logo-light',
+            t,
+          });
+          onProgress(t);
+          if (elapsed >= durationMs) {
+            resolve();
+            return;
+          }
+          requestAnimationFrame(tick);
+        } catch (e) {
+          reject(e);
+        }
+      };
       requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  });
+    });
 
-  recorder.stop();
-  if (background.type === 'video') background.video.pause();
-  const blob = await done;
-  audioCleanup?.();
-  return blob;
+    rec.stop();
+    return await done;
+  } finally {
+    if (recorder && recorder.state !== 'inactive') recorder.stop();
+    if (background.type === 'video') background.video.pause();
+    mix?.cleanup();
+    if (musicUrl) URL.revokeObjectURL(musicUrl);
+    if (narrationUrl) URL.revokeObjectURL(narrationUrl);
+  }
 }
 
 let ffmpegSingleton: FFmpeg | null = null;
@@ -430,14 +442,19 @@ export async function renderVideo(
   const { background, cleanup } = await buildBackground(input);
 
   const recording = pickRecordingMime();
-  const captured = await captureCanvas(
-    input,
-    background,
-    logo,
-    recording.mime,
-    cb.onCapture ?? (() => {}),
-  );
-  cleanup();
+  let captured: Blob;
+  // Revoke the background object URL even if capture throws.
+  try {
+    captured = await captureCanvas(
+      input,
+      background,
+      logo,
+      recording.mime,
+      cb.onCapture ?? (() => {}),
+    );
+  } finally {
+    cleanup();
+  }
 
   // Fast path: the browser recorded H.264/MP4 directly — no transcode needed.
   if (recording.ext === 'mp4') {

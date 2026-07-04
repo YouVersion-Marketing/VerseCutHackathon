@@ -168,7 +168,9 @@ export function useStudio() {
 
   // Load languages once; default to English when available.
   useEffect(() => {
+    let active = true;
     provider.listLanguages().then((langs) => {
+      if (!active) return;
       setLanguages(langs);
       const def =
         langs.find((l) => l.id === 'i:en' || l.id === 'en' || l.id === 'eng') ??
@@ -176,6 +178,9 @@ export function useStudio() {
         langs[0];
       if (def) setLanguageId(def.id);
     });
+    return () => {
+      active = false;
+    };
   }, [provider]);
 
   // Load versions + books when language changes.
@@ -358,7 +363,15 @@ export function useStudio() {
 
   const patchJob = useCallback(
     (id: string, patch: Partial<Job>) =>
-      setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, ...patch } : j))),
+      setJobs((prev) => {
+        // If the job was evicted (history cap) while its render was in flight,
+        // revoke the finished asset's object URL so it isn't leaked.
+        if (!prev.some((j) => j.id === id)) {
+          if (patch.asset?.url) URL.revokeObjectURL(patch.asset.url);
+          return prev;
+        }
+        return prev.map((j) => (j.id === id ? { ...j, ...patch } : j));
+      }),
     [],
   );
 

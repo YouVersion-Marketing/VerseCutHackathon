@@ -52,6 +52,19 @@ export function baseContentType(type: string, ext: string): string {
   return ext === 'mp4' ? 'video/mp4' : ext === 'webm' ? 'video/webm' : `image/${ext === 'jpg' ? 'jpeg' : 'png'}`;
 }
 
+/** Build an Error that includes the HTTP status and the server's `{ error }`, so
+ * failures are debuggable instead of a generic message. */
+async function errorFrom(res: Response, fallback: string): Promise<Error> {
+  let detail = '';
+  try {
+    const body = (await res.json()) as { error?: string };
+    if (body?.error) detail = `: ${body.error}`;
+  } catch {
+    // Non-JSON body — keep the fallback + status only.
+  }
+  return new Error(`${fallback} (${res.status})${detail}`);
+}
+
 /** Upload a rendered asset to Blob, then persist its metadata. */
 export async function saveAdToLibrary(asset: RenderedAsset, meta: AdMeta): Promise<SavedAd> {
   const contentType = baseContentType(asset.blob.type, asset.ext);
@@ -72,20 +85,20 @@ export async function saveAdToLibrary(asset: RenderedAsset, meta: AdMeta): Promi
       sizeBytes: asset.blob.size,
     }),
   });
-  if (!res.ok) throw new Error('Failed to save to library');
+  if (!res.ok) throw await errorFrom(res, 'Failed to save to library');
   return (await res.json()).data as SavedAd;
 }
 
 export async function listMyAds(): Promise<SavedAd[]> {
   const res = await fetch('/api/library');
-  if (!res.ok) throw new Error('Failed to load library');
+  if (!res.ok) throw await errorFrom(res, 'Failed to load library');
   return (await res.json()).data as SavedAd[];
 }
 
 /** Delete one of the signed-in user's saved ads (DB row + Blob file). */
 export async function deleteMyAd(id: string): Promise<void> {
   const res = await fetch(`/api/library/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Failed to delete');
+  if (!res.ok) throw await errorFrom(res, 'Failed to delete');
 }
 
 // --- Shared background assets (uploaded once, reusable by everyone) ----------
@@ -105,7 +118,7 @@ export interface SharedAsset {
 
 export async function listSharedAssets(): Promise<SharedAsset[]> {
   const res = await fetch('/api/uploads');
-  if (!res.ok) throw new Error('Failed to load shared assets');
+  if (!res.ok) throw await errorFrom(res, 'Failed to load shared assets');
   return (await res.json()).data as SharedAsset[];
 }
 
@@ -130,12 +143,12 @@ export async function uploadSharedAsset(file: File): Promise<SharedAsset> {
       sizeBytes: file.size,
     }),
   });
-  if (!res.ok) throw new Error('Failed to share asset');
+  if (!res.ok) throw await errorFrom(res, 'Failed to share asset');
   return (await res.json()).data as SharedAsset;
 }
 
 /** Remove a team-shared asset (DB row + Blob file). */
 export async function deleteSharedAsset(id: string): Promise<void> {
   const res = await fetch(`/api/uploads/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Failed to remove asset');
+  if (!res.ok) throw await errorFrom(res, 'Failed to remove asset');
 }

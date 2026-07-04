@@ -136,15 +136,24 @@ export interface VideoManifest {
   imports?: ImportedVideoEntry[];
 }
 
-let manifestCache: VideoManifest | null = null;
+let manifestPromise: Promise<VideoManifest> | null = null;
 
 /** Load the pre-populated video catalog shipped in public/assets/videos. */
 export async function loadManifest(): Promise<VideoManifest> {
-  if (manifestCache) return manifestCache;
-  const res = await fetch('/assets/videos/manifest.json');
-  if (!res.ok) throw new Error('video manifest not found');
-  manifestCache = (await res.json()) as VideoManifest;
-  return manifestCache;
+  // Cache the in-flight promise (not just the value) so concurrent callers share
+  // one fetch instead of each issuing their own. Reset on failure so a later
+  // call can retry.
+  if (!manifestPromise) {
+    manifestPromise = (async () => {
+      const res = await fetch('/assets/videos/manifest.json');
+      if (!res.ok) throw new Error('video manifest not found');
+      return (await res.json()) as VideoManifest;
+    })().catch((e) => {
+      manifestPromise = null;
+      throw e;
+    });
+  }
+  return manifestPromise;
 }
 
 /**
