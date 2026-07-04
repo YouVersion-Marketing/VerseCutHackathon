@@ -2,7 +2,12 @@
 
 import { useEffect } from 'react';
 import { XMark } from './icons';
-import { SETTING_META, type AppSettings, type SettingKey } from '../lib/appSettings';
+import { SETTING_META, type AppSettings, type SettingKey, type VerseDefault } from '../lib/appSettings';
+
+function verseLabel(v: VerseDefault): string {
+  const range = v.fromVerse === v.toVerse ? `${v.fromVerse}` : `${v.fromVerse}-${v.toVerse}`;
+  return `${v.bookName} ${v.chapter}:${range}`;
+}
 
 function Toggle({ on, onChange, label }: { on: boolean; onChange: () => void; label: string }) {
   return (
@@ -28,11 +33,17 @@ export function SettingsDrawer({
   onClose,
   settings,
   onToggle,
+  currentVerse,
+  onSaveVerseDefault,
+  onClearVerseDefault,
 }: {
   open: boolean;
   onClose: () => void;
   settings: AppSettings;
   onToggle: (key: SettingKey) => void;
+  currentVerse: VerseDefault;
+  onSaveVerseDefault: () => void;
+  onClearVerseDefault: () => void;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -79,6 +90,34 @@ export function SettingsDrawer({
                 <Toggle on={settings[key]} onChange={() => onToggle(key)} label={label} />
               </div>
             ))}
+          </div>
+
+          <div className="mt-6">
+            <div className="mb-1 text-[15px] font-semibold text-ink">Default verse range</div>
+            <p className="mb-3 text-[12px] text-faint">
+              New sessions start here. Currently:{' '}
+              <span className="font-semibold text-ink">
+                {settings.verseDefault ? verseLabel(settings.verseDefault) : 'John 3:16-17 (built-in)'}
+              </span>
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={onSaveVerseDefault}
+                className="rounded-lg border border-line bg-surface px-3 py-2 text-[13px] font-semibold text-ink transition hover:bg-line-soft"
+              >
+                Use current selection ({verseLabel(currentVerse)})
+              </button>
+              {settings.verseDefault && (
+                <button
+                  type="button"
+                  onClick={onClearVerseDefault}
+                  className="rounded-lg px-3 py-2 text-[13px] font-semibold text-faint transition hover:text-ink"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </aside>
