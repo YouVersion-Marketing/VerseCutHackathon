@@ -8,6 +8,7 @@ import { LibraryDrawer } from './components/LibraryDrawer';
 import { SpaceSwitcher } from './components/SpaceSwitcher';
 import { PanelResizer } from './components/PanelResizer';
 import { OutputPanel } from './components/OutputPanel';
+import { GeneratedLibrary } from './components/GeneratedLibrary';
 import { ImageLibrary } from './components/ImageLibrary';
 import { MobileTabBar } from './components/MobileTabBar';
 import { MobileMenu } from './components/MobileMenu';
@@ -25,6 +26,8 @@ import {
   type SettingKey,
   type VerseDefault,
 } from './lib/appSettings';
+
+type MobileLib = 'generated' | 'videos' | 'youversion' | 'unsplash';
 
 const STATUS: Record<string, { label: string; dot: string }> = {
   idle: { label: 'Ready to generate', dot: 'bg-faint' },
@@ -65,7 +68,7 @@ export default function App({
     });
   const [rightView, setRightView] = useState<RightView>('output');
   const [mobileView, setMobileView] = useState<MobileView>('edit');
-  const [mobileLib, setMobileLib] = useState<'videos' | 'youversion' | 'unsplash'>('unsplash');
+  const [mobileLib, setMobileLib] = useState<MobileLib>('generated');
   const [menuOpen, setMenuOpen] = useState(false);
   // Start at the deterministic default so SSR and first client render match,
   // then adopt any stored width after mount.
@@ -173,8 +176,9 @@ export default function App({
             <div className="shrink-0 px-4 pt-3">
               <Segmented
                 value={mobileLib}
-                onChange={(v) => setMobileLib(v as 'videos' | 'youversion' | 'unsplash')}
+                onChange={(v) => setMobileLib(v as MobileLib)}
                 options={[
+                  { value: 'generated', label: 'Saved' },
                   { value: 'youversion', label: 'YouVersion' },
                   { value: 'unsplash', label: 'Unsplash' },
                   { value: 'videos', label: 'Videos' },
@@ -182,7 +186,9 @@ export default function App({
               />
             </div>
             <div className="min-h-0 flex-1">
-              {mobileLib === 'videos' ? (
+              {mobileLib === 'generated' ? (
+                <GeneratedLibrary />
+              ) : mobileLib === 'videos' ? (
                 <ImageLibrary studio={studio} kind="video" onPicked={() => setMobileView('preview')} />
               ) : (
                 <ImageLibrary

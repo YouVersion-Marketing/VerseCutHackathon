@@ -1,12 +1,14 @@
 import type { useStudio } from '../lib/useStudio';
 import { OutputPanel } from './OutputPanel';
 import { ImageLibrary } from './ImageLibrary';
+import { GeneratedLibrary } from './GeneratedLibrary';
 
 type Studio = ReturnType<typeof useStudio>;
-export type RightView = 'output' | 'videos' | 'youversion' | 'unsplash';
+export type RightView = 'output' | 'videos' | 'youversion' | 'unsplash' | 'generated';
 
 const TABS: { id: RightView; label: string }[] = [
   { id: 'output', label: 'Preview' },
+  { id: 'generated', label: 'Previously generated' },
   { id: 'youversion', label: 'YouVersion' },
   { id: 'unsplash', label: 'Unsplash' },
   { id: 'videos', label: 'Video library' },
@@ -41,6 +43,7 @@ export function RightPanel({
       </div>
       <div className="min-h-0 flex-1">
         {view === 'output' && <OutputPanel studio={studio} space={space} />}
+        {view === 'generated' && <GeneratedLibrary />}
         {view === 'youversion' && (
           <ImageLibrary studio={studio} kind="image" source="youversion" onPicked={() => setView('output')} />
         )}
