@@ -194,6 +194,15 @@ export function Stepper({
   onChange: (v: number) => void;
 }) {
   const clamp = (v: number) => Math.min(max, Math.max(min, v));
+  // Local draft lets the user clear the field and type a multi-digit number;
+  // the value is committed (and clamped) on blur / Enter.
+  const [draft, setDraft] = useState<string | null>(null);
+  const shown = draft ?? String(value);
+  const commit = (raw: string) => {
+    const n = parseInt(raw, 10);
+    if (Number.isFinite(n)) onChange(clamp(n));
+    setDraft(null);
+  };
   return (
     <div className="flex-1">
       <div className="mb-1.5 text-[12px] font-medium text-muted">{label}</div>
@@ -203,19 +212,30 @@ export function Stepper({
           aria-label={`Decrease ${label}`}
           onClick={() => onChange(clamp(value - 1))}
           disabled={value <= min}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition hover:bg-line-soft hover:text-ink disabled:opacity-30"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-line-soft hover:text-ink disabled:opacity-30"
         >
           <Minus />
         </button>
-        <span className="min-w-6 text-center text-[15px] font-semibold tabular-nums text-ink">
-          {value}
-        </span>
+        <input
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          aria-label={label}
+          value={shown}
+          onChange={(e) => setDraft(e.target.value.replace(/[^0-9]/g, ''))}
+          onFocus={(e) => e.currentTarget.select()}
+          onBlur={(e) => commit(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur();
+          }}
+          className="w-full min-w-0 bg-transparent text-center text-[15px] font-semibold tabular-nums text-ink outline-none"
+        />
         <button
           type="button"
           aria-label={`Increase ${label}`}
           onClick={() => onChange(clamp(value + 1))}
           disabled={value >= max}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition hover:bg-line-soft hover:text-ink disabled:opacity-30"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-line-soft hover:text-ink disabled:opacity-30"
         >
           <Plus />
         </button>

@@ -3,12 +3,29 @@
 // choice sticks across sessions.
 
 export type SettingKey = 'voiceover' | 'music' | 'branding';
-export type AppSettings = Record<SettingKey, boolean>;
+
+/** A saved default Bible reference to prefill new sessions. */
+export interface VerseDefault {
+  book: string; // USFM book id, e.g. "JHN"
+  bookName: string; // human label for display, e.g. "John"
+  chapter: number;
+  fromVerse: number;
+  toVerse: number;
+}
+
+export interface AppSettings {
+  voiceover: boolean;
+  music: boolean;
+  branding: boolean;
+  /** null = use the built-in default (John 3:16-17). */
+  verseDefault: VerseDefault | null;
+}
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   voiceover: true,
   music: true,
   branding: true,
+  verseDefault: null,
 };
 
 export const SETTING_META: { key: SettingKey; label: string; hint: string }[] = [
@@ -25,6 +42,7 @@ export function resolveAppSettings(stored: Partial<AppSettings> | null): AppSett
     voiceover: stored.voiceover ?? DEFAULT_APP_SETTINGS.voiceover,
     music: stored.music ?? DEFAULT_APP_SETTINGS.music,
     branding: stored.branding ?? DEFAULT_APP_SETTINGS.branding,
+    verseDefault: stored.verseDefault ?? DEFAULT_APP_SETTINGS.verseDefault,
   };
 }
 

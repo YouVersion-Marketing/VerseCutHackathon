@@ -7,6 +7,7 @@ import { ASPECT_DIMENSIONS, config, type AspectRatio, type OutputFormat } from '
 import { GRADIENTS, DEFAULT_GRADIENT_ID } from './gradients';
 import { getBibleProvider, type BibleVersion, type Book, type Language } from './bible';
 import { renderImage, renderVideo, type RenderedAsset } from './render';
+import { readStoredAppSettings } from './appSettings';
 import type { LogoStyle } from './iconCatalog';
 import {
   importedVideoUrl,
@@ -92,12 +93,15 @@ export function useStudio() {
   const [books, setBooks] = useState<Book[]>([]);
 
   // Form selections
+  // Prefill the verse range from the user's saved default (Settings), falling
+  // back to John 3:16-17.
+  const verseDefault = useMemo(() => readStoredAppSettings().verseDefault, []);
   const [languageId, setLanguageId] = useState('');
   const [versionId, setVersionId] = useState('');
   const [bookId, setBookId] = useState('');
-  const [chapter, setChapter] = useState(3);
-  const [fromVerse, setFromVerse] = useState(16);
-  const [toVerse, setToVerse] = useState(17);
+  const [chapter, setChapter] = useState(verseDefault?.chapter ?? 3);
+  const [fromVerse, setFromVerse] = useState(verseDefault?.fromVerse ?? 16);
+  const [toVerse, setToVerse] = useState(verseDefault?.toVerse ?? 17);
 
   const [imageFile, setImageFileState] = useState<File | null>(null);
   const [videoFile, setVideoFileState] = useState<File | null>(null);
@@ -198,12 +202,17 @@ export function useStudio() {
     provider.listBooks(versionId).then((bs) => {
       if (!active) return;
       setBooks(bs);
-      setBookId((prev) => prev || bs.find((b) => b.id === 'JHN')?.id || bs[0]?.id || '');
+      const preferred =
+        (verseDefault?.book && bs.find((b) => b.id === verseDefault.book)?.id) ||
+        bs.find((b) => b.id === 'JHN')?.id ||
+        bs[0]?.id ||
+        '';
+      setBookId((prev) => prev || preferred);
     });
     return () => {
       active = false;
     };
-  }, [provider, versionId]);
+  }, [provider, versionId, verseDefault]);
 
   // Bare language code (the picker ids are source-prefixed, e.g. "i:af" / "p:aai").
   const languageCode = languageId.includes(':')

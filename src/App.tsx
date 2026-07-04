@@ -23,6 +23,7 @@ import {
   toggleSetting,
   writeStoredAppSettings,
   type SettingKey,
+  type VerseDefault,
 } from './lib/appSettings';
 
 const STATUS: Record<string, { label: string; dot: string }> = {
@@ -56,6 +57,12 @@ export default function App({
       writeStoredAppSettings(next);
       return next;
     });
+  const setVerseDefault = (vd: VerseDefault | null) =>
+    setSettings((s) => {
+      const next = { ...s, verseDefault: vd };
+      writeStoredAppSettings(next);
+      return next;
+    });
   const [rightView, setRightView] = useState<RightView>('output');
   const [mobileView, setMobileView] = useState<MobileView>('edit');
   const [mobileLib, setMobileLib] = useState<'videos' | 'youversion' | 'unsplash'>('unsplash');
@@ -67,6 +74,15 @@ export default function App({
     const stored = readStoredWidth();
     if (stored !== null) setLeftWidth(stored);
   }, []);
+
+  const currentBook = studio.books.find((b) => b.id === studio.bookId);
+  const currentVerse: VerseDefault = {
+    book: studio.bookId,
+    bookName: currentBook?.name ?? studio.bookId,
+    chapter: studio.chapter,
+    fromVerse: studio.fromVerse,
+    toVerse: studio.toVerse,
+  };
 
   return (
     <div className="flex h-dvh flex-col bg-surface">
@@ -220,6 +236,9 @@ export default function App({
         onClose={() => setSettingsOpen(false)}
         settings={settings}
         onToggle={onToggleSetting}
+        currentVerse={currentVerse}
+        onSaveVerseDefault={() => setVerseDefault(currentVerse)}
+        onClearVerseDefault={() => setVerseDefault(null)}
       />
     </div>
   );
