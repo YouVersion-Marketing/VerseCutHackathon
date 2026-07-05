@@ -145,10 +145,13 @@ function StageRow({ stage }: { stage: Stage }) {
 function PreviewFrame({
   aspect,
   safeArea,
+  capPx = 720,
   children,
 }: {
   aspect: string;
   safeArea?: boolean;
+  /** Max height cap (px) for height-driven formats; raised in the side layout. */
+  capPx?: number;
   children: React.ReactNode;
 }) {
   // Size tall/square formats by height; only 16:9 sizes by width. The frame
@@ -163,7 +166,7 @@ function PreviewFrame({
         aspectRatio: aspect.replace(':', ' / '),
         height: byHeight ? '100%' : undefined,
         width: byHeight ? undefined : 'min(100%, 880px)',
-        maxHeight: 'min(100%, 720px)',
+        maxHeight: `min(100%, ${capPx}px)`,
         maxWidth: '100%',
       }}
     >
@@ -192,6 +195,9 @@ export function OutputPanel({
   // Frame mirrors the selected job (so chips of different aspects preview right);
   // before any job exists, mirror the current form selection.
   const aspect = selectedJob?.aspect ?? studio.aspect;
+  // Portrait formats get a side-by-side layout on desktop (metadata to the
+  // right) so the preview can use the full panel height and render larger.
+  const isTall = aspect === '9:16' || aspect === '4:5';
   const format = selectedJob?.format ?? studio.format;
   const kindLabel = format === 'video' ? 'VIDEO' : 'IMAGE';
   const asset = selectedJob?.asset ?? null;
@@ -304,9 +310,13 @@ export function OutputPanel({
         )}
 
         {selectedJob && selectedJob.status === 'done' && asset && (
-          <div className="flex min-h-0 w-full flex-1 animate-fade-up flex-col items-center">
+          <div
+            className={`flex min-h-0 w-full flex-1 animate-fade-up flex-col items-center ${
+              isTall ? 'md:flex-row md:items-stretch md:justify-center md:gap-8' : ''
+            }`}
+          >
             <div className="flex min-h-0 w-full flex-1 items-center justify-center">
-              <PreviewFrame aspect={aspect} safeArea={showSafe}>
+              <PreviewFrame aspect={aspect} safeArea={showSafe} capPx={isTall ? 1200 : 720}>
                 {asset.kind === 'image' ? (
                   <img src={asset.url} alt="Generated verse ad" className="h-full w-full object-contain" />
                 ) : (
@@ -323,7 +333,11 @@ export function OutputPanel({
               </PreviewFrame>
             </div>
 
-            <div className="mt-4 flex w-full max-w-md shrink-0 flex-col items-center gap-3">
+            <div
+              className={`mt-4 flex w-full max-w-md shrink-0 flex-col items-center gap-3 ${
+                isTall ? 'md:mt-0 md:w-72 md:max-w-none md:items-stretch md:justify-center' : ''
+              }`}
+            >
               {!alreadySaved && (
                 <div className="flex w-full flex-col gap-2">
                   <input
