@@ -7,6 +7,13 @@ import { Check, Download, ImageIcon, Spinner, VideoIcon } from './icons';
 
 type Studio = ReturnType<typeof useStudio>;
 
+// Sample verse ads (9:16) looped in the empty-state preview, picked at random
+// per load so the showcase varies.
+const SAMPLE_PREVIEWS = [
+  '/assets/videos/sample-verse-ad.mp4',
+  '/assets/videos/D9bb83Zxz1g.mp4',
+];
+
 function jobProgress(job: Job): number | null {
   const active = job.stages.find((s) => s.status === 'active');
   return active?.progress != null ? Math.round(active.progress * 100) : null;
@@ -209,6 +216,12 @@ export function OutputPanel({
   // Optional title + tags the user can attach before saving.
   const [title, setTitle] = useState('');
   const [tagsInput, setTagsInput] = useState('');
+  // A sample ad looping in the empty-state preview — randomized per load.
+  // Set after mount to avoid an SSR/client hydration mismatch.
+  const [samplePreview, setSamplePreview] = useState<string | null>(null);
+  useEffect(() => {
+    setSamplePreview(SAMPLE_PREVIEWS[Math.floor(Math.random() * SAMPLE_PREVIEWS.length)]);
+  }, []);
 
   // Reset transient save state + metadata inputs when the user switches jobs.
   useEffect(() => {
@@ -271,18 +284,31 @@ export function OutputPanel({
 
       <div className="flex min-h-0 flex-1 flex-col px-6 py-5 md:px-10 md:py-8">
         {!selectedJob && (
-          <div className="m-auto max-w-sm text-center">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-surface text-faint shadow-sm ring-1 ring-line">
-              <ImageIcon width={26} height={26} />
+          <div className="flex h-full w-full flex-col items-center justify-center gap-5">
+            {samplePreview && (
+              <div className="flex min-h-0 w-full flex-1 items-center justify-center">
+                <PreviewFrame aspect="9:16">
+                  <video
+                    key={samplePreview}
+                    src={samplePreview}
+                    className="h-full w-full object-cover"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                  />
+                </PreviewFrame>
+              </div>
+            )}
+            <div className="max-w-sm shrink-0 text-center">
+              <h2 className="mb-2 text-[20px] font-bold text-ink">
+                Your ad preview appears here
+              </h2>
+              <p className="text-[14px] leading-relaxed text-muted">
+                An example is playing above. Pick a language and verse range, then generate
+                to see your {format === 'video' ? 'video' : 'image'} ad render in {aspect}.
+              </p>
             </div>
-            <h2 className="mb-2 text-[20px] font-bold text-ink">
-              Your ad preview appears here
-            </h2>
-            <p className="text-[14px] leading-relaxed text-muted">
-              Pick a language and verse range, then generate to see your{' '}
-              {format === 'video' ? 'video' : 'image'} ad render in {aspect}. You can keep
-              editing and queue more while a render runs.
-            </p>
           </div>
         )}
 
