@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { useStudio } from '../lib/useStudio';
 import type { RightView } from './RightPanel';
 import { ChevronDown, ImageIcon, Play, Spinner, UploadCloud, VideoIcon, XMark } from './icons';
-import { Button, CollapsibleSection, FieldLabel, Segmented, Select, Stepper, UploadField } from './ui';
+import { Button, CollapsibleSection, FieldLabel, SearchableSelect, Segmented, Select, Stepper, UploadField } from './ui';
 import { SOCIAL_FORMATS } from '../lib/socialFormats';
 import { gradientFromHex, normalizeHex } from '../lib/gradients';
 import { DEFAULT_APP_SETTINGS, type AppSettings } from '../lib/appSettings';
@@ -245,10 +245,11 @@ export function InputPanel({
           <div className="grid grid-cols-1 gap-x-5 gap-y-6 @[560px]:grid-cols-2">
             <div>
               <FieldLabel required>Language</FieldLabel>
-              <Select
+              <SearchableSelect
                 value={studio.languageId}
                 onChange={studio.setLanguageId}
                 placeholder="Select a language"
+                searchPlaceholder="Search languages…"
                 options={studio.languages.map((l) => ({
                   value: l.id,
                   label: l.name,
@@ -306,10 +307,12 @@ export function InputPanel({
 
             <div>
               <FieldLabel hint={`${studio.versions.length} available`}>Bible version</FieldLabel>
-              <Select
+              <SearchableSelect
                 value={studio.versionId}
                 onChange={studio.setVersionId}
                 disabled={studio.versions.length === 0}
+                placeholder="Select a version"
+                searchPlaceholder="Search versions…"
                 options={studio.versions.map((v) => ({
                   value: v.id,
                   label: `${v.abbreviation} — ${v.name}`,

@@ -1,5 +1,16 @@
-import { useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ButtonHTMLAttributes,
+  type ReactNode,
+} from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, Minus, Plus, UploadCloud, XMark } from './icons';
+import { filterSelectOptions } from '@/lib/selectFilter';
 
 type ButtonVariant = 'primary' | 'secondary' | 'dark' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -176,6 +187,228 @@ export function Select<T extends string>({
             ))}
       </select>
       <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-faint" />
+    </div>
+  );
+}
+
+/**
+ * A select that opens a filterable, keyboard-navigable list — type to search,
+ * ↑/↓ to move, Enter to choose, Esc to close. Use for long option lists
+ * (languages, Bible versions) where the native <select> is unwieldy.
+ */
+export function SearchableSelect<T extends string>({
+  value,
+  onChange,
+  options,
+  placeholder,
+  disabled,
+  searchPlaceholder = 'Type to search…',
+}: {
+  value: T | '';
+  onChange: (v: T) => void;
+  options: { value: T; label: string; group?: string }[];
+  placeholder?: string;
+  disabled?: boolean;
+  searchPlaceholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [highlight, setHighlight] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  // Viewport-anchored panel geometry. The panel is portaled to <body> so it
+  // escapes the studio's overflow-y-auto/@container ancestor (a `container-type`
+  // element establishes a containing block even for position:fixed, so a portal
+  // — not just `fixed` — is required to avoid clipping).
+  const [pos, setPos] = useState<{
+    left: number;
+    top: number;
+    width: number;
+    maxHeight: number;
+    placement: 'below' | 'above';
+  } | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  const filtered = useMemo(() => filterSelectOptions(options, query), [options, query]);
+  const selected = options.find((o) => o.value === value) ?? null;
+  const active = Math.min(highlight, Math.max(0, filtered.length - 1));
+
+  useEffect(() => setMounted(true), []);
+
+  const updatePosition = useCallback(() => {
+    const el = triggerRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const gap = 8;
+    const spaceBelow = window.innerHeight - r.bottom - gap;
+    const spaceAbove = r.top - gap;
+    const placement: 'below' | 'above' = spaceBelow >= spaceAbove ? 'below' : 'above';
+    const maxHeight = Math.max(160, Math.min(360, placement === 'below' ? spaceBelow : spaceAbove));
+    setPos({
+      left: r.left,
+      top: placement === 'below' ? r.bottom + gap : r.top - gap,
+      width: r.width,
+      maxHeight,
+      placement,
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    updatePosition();
+    const onReflow = () => updatePosition();
+    // Capture phase so scrolling the studio's inner container (not just window) repositions.
+    window.addEventListener('scroll', onReflow, true);
+    window.addEventListener('resize', onReflow);
+    return () => {
+      window.removeEventListener('scroll', onReflow, true);
+      window.removeEventListener('resize', onReflow);
+    };
+  }, [open, updatePosition]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (rootRef.current?.contains(t) || panelRef.current?.contains(t)) return;
+      setOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
+
+  useEffect(() => {
+    if (open) inputRef.current?.focus();
+  }, [open]);
+
+  const scrollTo = (idx: number) => {
+    requestAnimationFrame(() => {
+      listRef.current
+        ?.querySelector<HTMLElement>(`[data-opt-idx="${idx}"]`)
+        ?.scrollIntoView({ block: 'nearest' });
+    });
+  };
+
+  const move = (delta: number) => {
+    if (!filtered.length) return;
+    const next = Math.max(0, Math.min(filtered.length - 1, active + delta));
+    setHighlight(next);
+    scrollTo(next);
+  };
+
+  const choose = (v: T) => {
+    onChange(v);
+    setOpen(false);
+    setQuery('');
+  };
+
+  const openPanel = () => {
+    if (disabled) return;
+    setQuery('');
+    setHighlight(Math.max(0, options.findIndex((o) => o.value === value)));
+    setOpen(true);
+  };
+
+  let lastGroup: string | undefined;
+
+  const panel = open && pos && (
+    <div
+      ref={panelRef}
+      style={{
+        position: 'fixed',
+        left: pos.left,
+        top: pos.top,
+        width: pos.width,
+        maxHeight: pos.maxHeight,
+        transform: pos.placement === 'above' ? 'translateY(-100%)' : undefined,
+      }}
+      className="z-50 flex flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-[0_16px_40px_-12px_rgba(0,0,0,0.25)]"
+    >
+      <div className="border-b border-line-soft p-2">
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          placeholder={searchPlaceholder}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setHighlight(0);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              move(1);
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              move(-1);
+            } else if (e.key === 'Enter') {
+              e.preventDefault();
+              if (filtered[active]) choose(filtered[active].value);
+            } else if (e.key === 'Escape') {
+              e.preventDefault();
+              setOpen(false);
+            }
+          }}
+          className="h-10 w-full rounded-lg bg-line-soft px-3 text-[15px] text-ink outline-none placeholder:text-faint"
+        />
+      </div>
+      <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto py-1" role="listbox">
+        {filtered.length === 0 ? (
+          <div className="px-4 py-3 text-[14px] text-faint">No matches</div>
+        ) : (
+          filtered.map((o, i) => {
+            const g = o.group ?? '';
+            const header = g && g !== lastGroup ? g : null;
+            lastGroup = g;
+            return (
+              <div key={o.value}>
+                {header && (
+                  <div className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-faint">
+                    {header}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={o.value === value}
+                  data-opt-idx={i}
+                  onMouseEnter={() => setHighlight(i)}
+                  onClick={() => choose(o.value)}
+                  className={`flex w-full items-center px-4 py-2 text-left text-[15px] transition ${
+                    i === active ? 'bg-brand/10 text-ink' : 'text-muted hover:text-ink'
+                  } ${o.value === value ? 'font-semibold text-ink' : ''}`}
+                >
+                  <span className="truncate">{o.label}</span>
+                </button>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        ref={triggerRef}
+        type="button"
+        role="combobox"
+        aria-expanded={open}
+        disabled={disabled}
+        onClick={() => (open ? setOpen(false) : openPanel())}
+        className="flex h-[52px] w-full items-center justify-between rounded-xl border border-line bg-surface px-4 text-left text-base font-medium outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10 disabled:cursor-not-allowed disabled:opacity-50 md:text-[15px]"
+      >
+        <span className={`truncate ${selected ? 'text-ink' : 'text-faint'}`}>
+          {selected ? selected.label : placeholder}
+        </span>
+        <ChevronDown className="ml-2 shrink-0 text-faint" />
+      </button>
+
+      {mounted && panel && createPortal(panel, document.body)}
     </div>
   );
 }
