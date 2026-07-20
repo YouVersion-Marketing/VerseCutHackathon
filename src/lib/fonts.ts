@@ -10,6 +10,15 @@ export type Script =
   | 'arabic'
   | 'hebrew'
   | 'devanagari'
+  | 'bengali'
+  | 'gurmukhi'
+  | 'gujarati'
+  | 'oriya'
+  | 'tamil'
+  | 'telugu'
+  | 'kannada'
+  | 'malayalam'
+  | 'sinhala'
   | 'thai'
   | 'han'
   | 'japanese'
@@ -19,6 +28,17 @@ const RANGES: { script: Script; re: RegExp }[] = [
   { script: 'arabic', re: /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/ },
   { script: 'hebrew', re: /[֐-׿יִ-ﭏ]/ },
   { script: 'devanagari', re: /[ऀ-ॿ]/ },
+  // Indic blocks are each a discrete Unicode range; kept separate so every
+  // language loads its own Noto Serif family (they don't share glyphs).
+  { script: 'bengali', re: /[ঀ-৿]/ },
+  { script: 'gurmukhi', re: /[਀-੿]/ },
+  { script: 'gujarati', re: /[઀-૿]/ },
+  { script: 'oriya', re: /[଀-୿]/ },
+  { script: 'tamil', re: /[஀-௿]/ },
+  { script: 'telugu', re: /[ఀ-౿]/ },
+  { script: 'kannada', re: /[ಀ-೿]/ },
+  { script: 'malayalam', re: /[ഀ-ൿ]/ },
+  { script: 'sinhala', re: /[඀-෿]/ },
   { script: 'thai', re: /[฀-๿]/ },
   { script: 'japanese', re: /[぀-ヿ]/ }, // kana ⇒ Japanese
   { script: 'korean', re: /[가-힯ᄀ-ᇿ]/ },
@@ -68,6 +88,12 @@ interface FontSpec {
   rtl: boolean;
 }
 
+/** A weight-400..700 Noto Serif family for a given script name (LTR). */
+function notoSerif(name: string): FontSpec {
+  const family = `Noto Serif ${name}`;
+  return { family, googleFamily: `${family.replace(/ /g, '+')}:wght@400..700`, rtl: false };
+}
+
 function spec(script: Script, languageId?: string): FontSpec {
   switch (script) {
     case 'arabic':
@@ -75,9 +101,27 @@ function spec(script: Script, languageId?: string): FontSpec {
     case 'hebrew':
       return { family: 'Noto Serif Hebrew', googleFamily: 'Noto+Serif+Hebrew:wght@400..700', rtl: true };
     case 'devanagari':
-      return { family: 'Noto Serif Devanagari', googleFamily: 'Noto+Serif+Devanagari:wght@400..700', rtl: false };
+      return notoSerif('Devanagari');
+    case 'bengali':
+      return notoSerif('Bengali');
+    case 'gurmukhi':
+      return notoSerif('Gurmukhi');
+    case 'gujarati':
+      return notoSerif('Gujarati');
+    case 'oriya':
+      return notoSerif('Oriya');
+    case 'tamil':
+      return notoSerif('Tamil');
+    case 'telugu':
+      return notoSerif('Telugu');
+    case 'kannada':
+      return notoSerif('Kannada');
+    case 'malayalam':
+      return notoSerif('Malayalam');
+    case 'sinhala':
+      return notoSerif('Sinhala');
     case 'thai':
-      return { family: 'Noto Serif Thai', googleFamily: 'Noto+Serif+Thai:wght@400..700', rtl: false };
+      return notoSerif('Thai');
     case 'japanese':
       return { family: 'Noto Serif JP', googleFamily: 'Noto+Serif+JP:wght@400..700', rtl: false };
     case 'korean':
