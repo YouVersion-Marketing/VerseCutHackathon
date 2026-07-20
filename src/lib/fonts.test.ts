@@ -17,6 +17,34 @@ describe('detectScript', () => {
   it('detects devanagari', () => {
     expect(detectScript('क्योंकि परमेश्वर ने जगत से')).toBe('devanagari');
   });
+  it('detects telugu', () => {
+    expect(detectScript('ఆదికాండము')).toBe('telugu');
+    expect(detectScript('ఆదియందు దేవుడు భూమ్యాకాశములను సృజించెను')).toBe('telugu');
+  });
+  it('detects tamil', () => {
+    expect(detectScript('ஆதியாகமம்')).toBe('tamil');
+  });
+  it('detects kannada', () => {
+    expect(detectScript('ಆದಿಕಾಂಡ')).toBe('kannada');
+  });
+  it('detects malayalam', () => {
+    expect(detectScript('ഉല്പത്തി')).toBe('malayalam');
+  });
+  it('detects bengali', () => {
+    expect(detectScript('আদিপুস্তক')).toBe('bengali');
+  });
+  it('detects gujarati', () => {
+    expect(detectScript('ઉત્પત્તિ')).toBe('gujarati');
+  });
+  it('detects gurmukhi', () => {
+    expect(detectScript('ਉਤਪਤ')).toBe('gurmukhi');
+  });
+  it('detects oriya', () => {
+    expect(detectScript('ଆଦିପୁସ୍ତକ')).toBe('oriya');
+  });
+  it('detects sinhala', () => {
+    expect(detectScript('උත්පත්ති')).toBe('sinhala');
+  });
   it('detects thai', () => {
     expect(detectScript('เพราะว่าพระเจ้าทรงรักโลก')).toBe('thai');
   });
