@@ -74,6 +74,7 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
   const [geoReady, setGeoReady] = useState<{ byCountry: string; byLanguage: string } | null>(null);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [failReason, setFailReason] = useState<string | null>(null);
 
   useEffect(() => {
     provider
@@ -88,6 +89,7 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
   async function runVersions() {
     setRunning(true);
     setError(null);
+    setFailReason(null);
     setRows(null);
     setProgress(null);
     try {
@@ -126,8 +128,11 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
           gradientId: 'ocean',
           concurrency: 8,
           onProgress: setProgress,
-          onError: (versionId, err) =>
-            console.warn(`[bulk-export] version ${versionId} failed:`, err),
+          onError: (versionId, err) => {
+            const m = err instanceof Error ? err.message : String(err);
+            console.warn(`[bulk-export] version ${versionId} failed:`, m);
+            setFailReason((prev) => prev ?? `${versionId}: ${m}`);
+          },
         },
       );
       setRows(result);
@@ -273,6 +278,11 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
         {progress && (
           <p className="mt-4 text-[13px] text-muted">
             {progress.done}/{progress.total} rendered · {progress.failed} failed
+          </p>
+        )}
+        {failReason && (
+          <p className="mt-2 max-w-2xl break-words text-[13px] text-brand">
+            First failure — {failReason}
           </p>
         )}
         {rows && (
