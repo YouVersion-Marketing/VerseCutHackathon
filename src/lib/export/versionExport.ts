@@ -28,6 +28,8 @@ export interface VersionExportOptions {
   isDone?: (versionId: string) => boolean;
   onProgress?: (p: { done: number; total: number; failed: number }) => void;
   onRow?: (row: VersionExportRow) => void;
+  /** Called once per version that fails both attempts, with the last error. */
+  onError?: (versionId: string, error: unknown) => void;
 }
 
 async function exportOne(
@@ -97,9 +99,10 @@ export async function runVersionExport(
       for (let attempt = 0; attempt < 2 && !row; attempt++) {
         try {
           row = await exportOne(version, deps, opts);
-        } catch {
+        } catch (err) {
           if (attempt === 1) {
             failed++;
+            opts.onError?.(version.id, err);
             row = {
               version_id: version.id,
               reference: '',

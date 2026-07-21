@@ -1,18 +1,23 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { SpaceShell } from './SpaceShell';
-import { Button, FieldLabel, Select } from './ui';
+import { Button, FieldLabel, Select, SearchableSelect, Stepper } from './ui';
 import { ASPECT_DIMENSIONS, type AspectRatio } from '../config';
 import type { LogoStyle } from '../lib/iconCatalog';
 import { renderImage } from '../lib/render';
 import { YouVersionInternalProvider, loadBibleManifest } from '../lib/bible/internalProvider';
+import type { Book } from '../lib/bible';
 import { uploadImageToAir } from '../lib/export/airClient';
 import { runVersionExport, type ExportVersion } from '../lib/export/versionExport';
+import { prioritizeVersions, DEFAULT_PRIORITY_CODES } from '../lib/export/versionOrder';
 import type { VersionExportRow } from '../lib/export/types';
 import { buildVersionsCsv, buildGeoByCountryCsv, buildGeoByLanguageCsv } from '../lib/export/csv';
 import { LANGUAGE_COUNTRY } from '../lib/export/languageCountry';
 import { planGeoQueries, buildGeoResults, type RawGeoPhoto } from '../lib/export/geoBackgrounds';
+
+// Populate the book dropdown from a widely-available version (NIV).
+const BOOK_LIST_VERSION = '111';
 
 function download(name: string, text: string) {
   const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
@@ -27,7 +32,9 @@ function download(name: string, text: string) {
 async function fetchCountryPhotos(country: string, capital: string): Promise<RawGeoPhoto[]> {
   const out: RawGeoPhoto[] = [];
   for (const query of planGeoQueries({ country, capital })) {
-    const res = await fetch(`/api/unsplash/search?query=${encodeURIComponent(query)}&per_page=10&orientation=landscape`);
+    const res = await fetch(
+      `/api/unsplash/search?query=${encodeURIComponent(query)}&per_page=10&orientation=landscape`,
+    );
     if (!res.ok) continue;
     const json = (await res.json()) as { data?: { photos?: RawGeoPhoto[] } };
     for (const p of json.data?.photos ?? []) out.push(p);
@@ -39,25 +46,50 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
   const provider = useMemo(() => new YouVersionInternalProvider(), []);
   const [logoStyle, setLogoStyle] = useState<LogoStyle>('logo-light');
   const [aspect, setAspect] = useState<AspectRatio>('1:1');
-  const [reference] = useState({ bookId: 'JHN', chapter: 3, fromVerse: 16, toVerse: 16 });
-  const [progress, setProgress] = useState<{ done: number; total: number; failed: number } | null>(null);
+
+  const [books, setBooks] = useState<Book[]>([]);
+  const [bookId, setBookId] = useState('JHN');
+  const [chapter, setChapter] = useState(3);
+  const [fromVerse, setFromVerse] = useState(16);
+  const [toVerse, setToVerse] = useState(16);
+  // 0 = every version; a small number renders just the first N (after
+  // prioritizing major languages) so you can smoke-test AIR links quickly.
+  const [limit, setLimit] = useState(6);
+
+  const [progress, setProgress] = useState<{ done: number; total: number; failed: number } | null>(
+    null,
+  );
   const [rows, setRows] = useState<VersionExportRow[] | null>(null);
   const [geoReady, setGeoReady] = useState<{ byCountry: string; byLanguage: string } | null>(null);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    provider
+      .listBooks(BOOK_LIST_VERSION)
+      .then(setBooks)
+      .catch(() => setBooks([]));
+  }, [provider]);
+
+  const currentBook = books.find((b) => b.id === bookId);
+  const maxChapter = currentBook?.chapters ?? 150;
+
   async function runVersions() {
     setRunning(true);
     setError(null);
     setRows(null);
+    setProgress(null);
     try {
       const manifest = await loadBibleManifest();
-      const versions: ExportVersion[] = [];
+      const all: ExportVersion[] = [];
       for (const lang of manifest.languages) {
         for (const v of manifest.versionsByTag[lang.tag] ?? []) {
-          versions.push({ id: v.id, code: lang.code });
+          all.push({ id: v.id, code: lang.code });
         }
       }
+      const ordered = prioritizeVersions(all, DEFAULT_PRIORITY_CODES);
+      const versions = limit > 0 ? ordered.slice(0, limit) : ordered;
+
       const result = await runVersionExport(
         versions,
         {
@@ -66,13 +98,15 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
           uploadImage: uploadImageToAir,
         },
         {
-          reference,
+          reference: { bookId, chapter, fromVerse, toVerse },
           aspect,
           dimensions: ASPECT_DIMENSIONS[aspect],
           logoStyle,
           gradientId: 'ocean',
           concurrency: 8,
           onProgress: setProgress,
+          onError: (versionId, err) =>
+            console.warn(`[bulk-export] version ${versionId} failed:`, err),
         },
       );
       setRows(result);
@@ -114,6 +148,8 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
     }
   }
 
+  const bookOptions = books.map((b) => ({ value: b.id, label: b.name }));
+
   return (
     <SpaceShell userEmail={userEmail}>
       <div className="mx-auto max-w-2xl p-8">
@@ -123,7 +159,42 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
           and download the CSVs. Geo backgrounds are a separate download.
         </p>
 
-        <div className="mt-6 grid grid-cols-2 gap-4">
+        <div className="mt-6">
+          <FieldLabel>Verse reference</FieldLabel>
+          <SearchableSelect
+            value={bookId}
+            onChange={(v) => {
+              setBookId(v);
+              setChapter(1);
+              setFromVerse(1);
+              setToVerse(1);
+            }}
+            options={bookOptions}
+            placeholder={books.length ? 'Select a book' : 'Loading books…'}
+          />
+          <div className="mt-3 flex gap-3">
+            <Stepper label="Chapter" value={chapter} min={1} max={maxChapter} onChange={setChapter} />
+            <Stepper
+              label="From verse"
+              value={fromVerse}
+              min={1}
+              max={176}
+              onChange={(v) => {
+                setFromVerse(v);
+                if (v > toVerse) setToVerse(v);
+              }}
+            />
+            <Stepper
+              label="To verse"
+              value={toVerse}
+              min={fromVerse}
+              max={176}
+              onChange={setToVerse}
+            />
+          </div>
+        </div>
+
+        <div className="mt-6 grid grid-cols-3 gap-4">
           <div>
             <FieldLabel>Logo style</FieldLabel>
             <Select
@@ -149,11 +220,20 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
               ]}
             />
           </div>
+          <div>
+            <Stepper
+              label="Limit (0 = all)"
+              value={limit}
+              min={0}
+              max={5000}
+              onChange={setLimit}
+            />
+          </div>
         </div>
 
         <div className="mt-6 flex gap-3">
           <Button variant="primary" onClick={runVersions} disabled={running}>
-            {running ? 'Working…' : 'Export all versions'}
+            {running ? 'Working…' : limit > 0 ? `Export ${limit} versions` : 'Export all versions'}
           </Button>
           <Button variant="secondary" onClick={runGeo} disabled={running}>
             Export geo backgrounds
@@ -167,18 +247,29 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
         )}
         {rows && (
           <div className="mt-2 flex items-center gap-3 text-[13px]">
-            <span className="text-ink">{rows.length} versions exported.</span>
-            <button className="underline" onClick={() => download('versions.csv', buildVersionsCsv(rows))}>
+            <span className="text-ink">
+              {rows.filter((r) => r.air_cdn_link).length}/{rows.length} exported with links.
+            </span>
+            <button
+              className="underline"
+              onClick={() => download('versions.csv', buildVersionsCsv(rows))}
+            >
               Re-download versions.csv
             </button>
           </div>
         )}
         {geoReady && (
           <div className="mt-2 flex flex-col gap-1 text-[13px]">
-            <button className="underline" onClick={() => download('geo-backgrounds-by-country.csv', geoReady.byCountry)}>
+            <button
+              className="underline"
+              onClick={() => download('geo-backgrounds-by-country.csv', geoReady.byCountry)}
+            >
               Re-download geo-backgrounds-by-country.csv
             </button>
-            <button className="underline" onClick={() => download('geo-backgrounds-by-language.csv', geoReady.byLanguage)}>
+            <button
+              className="underline"
+              onClick={() => download('geo-backgrounds-by-language.csv', geoReady.byLanguage)}
+            >
               Re-download geo-backgrounds-by-language.csv
             </button>
           </div>
