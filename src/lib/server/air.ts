@@ -51,6 +51,41 @@ interface UploadRegistration {
   versionId?: string;
 }
 
+/**
+ * Poll the version until its delivery `urls` populate. Right after upload AIR
+ * returns 200 with `urls: {}` (or a brief 404) while it processes the asset;
+ * the imgix `preview`/`thumbnail` URL appears a few seconds later. Returns that
+ * URL, or null if it never becomes ready (caller falls back).
+ */
+async function getPreviewWhenReady(
+  fetchImpl: typeof fetch,
+  baseUrl: string,
+  assetId: string,
+  versionId: string,
+  headers: Record<string, string>,
+): Promise<string | null> {
+  const deadline = Date.now() + 20_000;
+  let backoff = 500;
+  for (;;) {
+    const res = await fetchImpl(`${baseUrl}/v1/assets/${assetId}/versions/${versionId}`, {
+      headers,
+    });
+    if (res.ok) {
+      const ver = (await res.json()) as {
+        urls?: { preview?: string; image?: string; thumbnail?: string };
+      };
+      const url = ver.urls?.preview ?? ver.urls?.image ?? ver.urls?.thumbnail;
+      if (url) return url;
+      // 200 but urls not populated yet — keep polling.
+    } else if (res.status !== 404) {
+      return null;
+    }
+    if (Date.now() >= deadline) return null;
+    await sleep(backoff);
+    backoff = Math.min(backoff * 1.5, 3000);
+  }
+}
+
 export async function uploadToAir(
   bytes: Uint8Array,
   opts: { fileName: string; mime: string; env: AirEnv; fetchImpl?: typeof fetch },
@@ -99,15 +134,16 @@ export async function uploadToAir(
     if (cdn.url) return { cdnUrl: cdn.url };
   }
 
-  const verRes = await fetchImpl(
-    `${env.baseUrl}/v1/assets/${reg.assetId}/versions/${reg.versionId}`,
-    { headers },
+  const preview = await getPreviewWhenReady(
+    fetchImpl,
+    env.baseUrl,
+    reg.assetId,
+    reg.versionId,
+    headers,
   );
-  if (verRes.ok) {
-    const ver = (await verRes.json()) as { urls?: { preview?: string; thumbnail?: string } };
-    const preview = ver.urls?.preview ?? ver.urls?.thumbnail;
-    if (preview) return { cdnUrl: preview };
-  }
+  if (preview) return { cdnUrl: preview };
 
+  // Last resort: the imgix delivery URL follows this shape once the asset is
+  // processed. It may 404 briefly if processing hasn't finished.
   return { cdnUrl: `https://air-prod.imgix.net/${reg.versionId}.jpg` };
 }
