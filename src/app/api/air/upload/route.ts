@@ -20,7 +20,9 @@ export async function POST(request: Request) {
       env,
     });
     return Response.json({ data: { cdnUrl } });
-  } catch {
-    return Response.json({ error: 'AIR upload failed' }, { status: 502 });
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error('[air/upload] failed:', detail);
+    return Response.json({ error: 'AIR upload failed', detail }, { status: 502 });
   }
 }
