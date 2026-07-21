@@ -60,7 +60,14 @@ async function exportOne(
     gradientHex: opts.gradientHex ?? null,
   });
 
-  const cdnUrl = await deps.uploadImage(asset.blob, `${version.id}.${asset.ext}`);
+  let cdnUrl: string;
+  try {
+    cdnUrl = await deps.uploadImage(asset.blob, `${version.id}.${asset.ext}`);
+  } finally {
+    if (typeof URL !== 'undefined' && typeof URL.revokeObjectURL === 'function') {
+      URL.revokeObjectURL(asset.url);
+    }
+  }
   return {
     version_id: version.id,
     reference: passage.reference,

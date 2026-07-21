@@ -27,7 +27,7 @@ function download(name: string, text: string) {
 async function fetchCountryPhotos(country: string, capital: string): Promise<RawGeoPhoto[]> {
   const out: RawGeoPhoto[] = [];
   for (const query of planGeoQueries({ country, capital })) {
-    const res = await fetch(`/api/unsplash/search?query=${encodeURIComponent(query)}&perPage=10&orientation=landscape`);
+    const res = await fetch(`/api/unsplash/search?query=${encodeURIComponent(query)}&per_page=10&orientation=landscape`);
     if (!res.ok) continue;
     const json = (await res.json()) as { data?: { photos?: RawGeoPhoto[] } };
     for (const p of json.data?.photos ?? []) out.push(p);
