@@ -198,7 +198,8 @@ export function useStudio() {
         setCatalogError(null);
         setLanguages(langs);
         const def =
-          langs.find((l) => l.id === 'i:en' || l.id === 'en' || l.id === 'eng') ??
+          langs.find((l) => l.code === 'en') ??
+          langs.find((l) => l.id === 'i:eng' || l.id === 'eng') ??
           langs.find((l) => /^english$/i.test(l.name)) ??
           langs[0];
         if (def) setLanguageId(def.id);
@@ -266,10 +267,13 @@ export function useStudio() {
     };
   }, [provider, versionId, verseDefault]);
 
-  // Bare language code (the picker ids are source-prefixed, e.g. "i:af" / "p:aai").
-  const languageCode = languageId.includes(':')
+  // Locale code for downstream features (voices/CTA/fonts). Manifest languages
+  // carry an iso_639_1 `code`; fall back to the id minus any source prefix.
+  const selectedLanguage = languages.find((l) => l.id === languageId);
+  const parsedLanguageId = languageId.includes(':')
     ? languageId.slice(languageId.indexOf(':') + 1)
     : languageId;
+  const languageCode = selectedLanguage?.code ?? parsedLanguageId;
 
   // Seed the CTA with the language's localized default until the user edits it.
   useEffect(() => {
