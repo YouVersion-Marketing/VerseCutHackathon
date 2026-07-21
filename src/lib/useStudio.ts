@@ -23,6 +23,20 @@ export interface SelectedLibraryVideo {
   url: string;
 }
 
+/** Photographer credit required when the background is an Unsplash hotlink. */
+export interface UnsplashAttribution {
+  photographerName: string;
+  photographerUrl: string;
+  photoUrl: string;
+}
+
+export interface SharedBackground {
+  url: string;
+  label: string;
+  kind: 'image' | 'video';
+  attribution?: UnsplashAttribution;
+}
+
 export interface Stage {
   id: string;
   label: string;
@@ -106,9 +120,7 @@ export function useStudio() {
   const [imageFile, setImageFileState] = useState<File | null>(null);
   const [videoFile, setVideoFileState] = useState<File | null>(null);
   const [libraryVideo, setLibraryVideo] = useState<SelectedLibraryVideo | null>(null);
-  const [sharedBg, setSharedBg] = useState<
-    { url: string; label: string; kind: 'image' | 'video' } | null
-  >(null);
+  const [sharedBg, setSharedBg] = useState<SharedBackground | null>(null);
   const [libraryBusy, setLibraryBusy] = useState(false);
   const [format, setFormat] = useState<OutputFormat>(config.output.defaultFormat);
   const [aspect, setAspect] = useState<AspectRatio>(config.output.defaultAspect);
@@ -316,6 +328,26 @@ export function useStudio() {
       setVideoFileState(null);
       setLibraryVideo(null);
       setSharedBg({ url: asset.fileUrl, label: asset.name, kind: asset.kind });
+    },
+    [],
+  );
+
+  /** Pick an Unsplash photo (hotlinked URL + attribution). */
+  const selectUnsplashPhoto = useCallback(
+    (photo: {
+      url: string;
+      label: string;
+      attribution: UnsplashAttribution;
+    }) => {
+      setImageFileState(null);
+      setVideoFileState(null);
+      setLibraryVideo(null);
+      setSharedBg({
+        url: photo.url,
+        label: photo.label,
+        kind: 'image',
+        attribution: photo.attribution,
+      });
     },
     [],
   );
@@ -649,6 +681,7 @@ export function useStudio() {
     // shared backgrounds
     sharedBg,
     selectSharedAsset,
+    selectUnsplashPhoto,
     clearSharedBg,
     format,
     setFormat,

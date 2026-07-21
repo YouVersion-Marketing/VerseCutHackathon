@@ -55,7 +55,7 @@ function SelectedChip({
 }: {
   icon: React.ReactNode;
   title: string;
-  subtitle: string;
+  subtitle: React.ReactNode;
   onClear: () => void;
 }) {
   return (
@@ -76,6 +76,52 @@ function SelectedChip({
         <XMark />
       </button>
     </div>
+  );
+}
+
+/** Unsplash API guideline: credit the photographer + Unsplash with links. */
+function UnsplashCredit({
+  photographerName,
+  photographerUrl,
+  photoUrl,
+}: {
+  photographerName: string;
+  photographerUrl: string;
+  photoUrl: string;
+}) {
+  const utm = (url: string) => {
+    try {
+      const u = new URL(url);
+      u.searchParams.set('utm_source', 'versecut');
+      u.searchParams.set('utm_medium', 'referral');
+      return u.toString();
+    } catch {
+      return url;
+    }
+  };
+  const linkClass = 'font-medium text-ink underline-offset-2 hover:underline';
+  return (
+    <span>
+      Photo by{' '}
+      <a
+        href={utm(photographerUrl)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={linkClass}
+      >
+        {photographerName}
+      </a>{' '}
+      on{' '}
+      <a
+        href={utm('https://unsplash.com')}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={linkClass}
+        title={photoUrl}
+      >
+        Unsplash
+      </a>
+    </span>
   );
 }
 
@@ -203,19 +249,37 @@ export function InputPanel({
     if (src === 'unsplash') return 'Unsplash background';
     return kind === 'video' ? 'Video background' : 'Image background';
   };
-  const currentBg: { icon: React.ReactNode; title: string; subtitle: string; clear: () => void } | null =
-    studio.imageFile
-      ? { icon: <ImageIcon />, title: studio.imageFile.name, subtitle: 'Uploaded image', clear: () => studio.setImageFile(null) }
-      : studio.videoFile
-        ? { icon: <VideoIcon />, title: studio.videoFile.name, subtitle: 'Uploaded video', clear: () => studio.setVideoFile(null) }
-        : studio.sharedBg
-          ? {
-              icon: studio.sharedBg.kind === 'video' ? <VideoIcon /> : <ImageIcon />,
-              title: studio.sharedBg.label,
-              subtitle: sharedSourceLabel(studio.sharedBg.label, studio.sharedBg.kind),
-              clear: studio.clearSharedBg,
-            }
-          : null;
+  const currentBg: {
+    icon: React.ReactNode;
+    title: string;
+    subtitle: React.ReactNode;
+    clear: () => void;
+  } | null = studio.imageFile
+    ? {
+        icon: <ImageIcon />,
+        title: studio.imageFile.name,
+        subtitle: 'Uploaded image',
+        clear: () => studio.setImageFile(null),
+      }
+    : studio.videoFile
+      ? {
+          icon: <VideoIcon />,
+          title: studio.videoFile.name,
+          subtitle: 'Uploaded video',
+          clear: () => studio.setVideoFile(null),
+        }
+      : studio.sharedBg
+        ? {
+            icon: studio.sharedBg.kind === 'video' ? <VideoIcon /> : <ImageIcon />,
+            title: studio.sharedBg.label,
+            subtitle: studio.sharedBg.attribution ? (
+              <UnsplashCredit {...studio.sharedBg.attribution} />
+            ) : (
+              sharedSourceLabel(studio.sharedBg.label, studio.sharedBg.kind)
+            ),
+            clear: studio.clearSharedBg,
+          }
+        : null;
 
   const [sections, setSections] = useState<SectionState>(DEFAULT_SECTIONS);
   useEffect(() => {

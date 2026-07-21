@@ -6,6 +6,11 @@ import {
   uploadSharedAsset,
   type SharedAsset,
 } from '../lib/library';
+import {
+  searchUnsplashPhotos,
+  trackUnsplashPhotoDownload,
+} from '../lib/unsplash/client';
+import type { UnsplashOrientation, UnsplashPhoto } from '../lib/unsplash/types';
 import { Play, Spinner, UploadCloud, XMark } from './icons';
 import { Button, Segmented, Select } from './ui';
 import { LazyVideo } from './LazyVideo';
@@ -15,11 +20,14 @@ type LibrarySource = 'youversion' | 'unsplash';
 type CatFilter = 'all' | 'prerendered_bg' | 'prerendered' | 'kids';
 type OrientFilter = 'all' | 'portrait' | 'landscape';
 type LangFilter = 'all' | 'en' | 'es' | 'pt' | 'fr';
+type UnsplashOrientFilter = 'all' | UnsplashOrientation;
 
+const SEARCH_DEBOUNCE_MS = 350;
 
 // Right-panel browser for the team-shared library, scoped by tab:
 // YouVersion (verse backgrounds, grouped by language + category/orientation
-// filters), Unsplash (photo backgrounds), and the Video library (kind=video).
+// filters), Unsplash (live photo search + optional team uploads), and the
+// Video library (kind=video).
 export function ImageLibrary({
   studio,
   kind = 'image',
@@ -41,6 +49,19 @@ export function ImageLibrary({
   const [lang, setLang] = useState<LangFilter>('all');
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Unsplash live search state
+  const [searchDraft, setSearchDraft] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [unsplashOrient, setUnsplashOrient] = useState<UnsplashOrientFilter>('all');
+  const [unsplashPhotos, setUnsplashPhotos] = useState<UnsplashPhoto[]>([]);
+  const [unsplashLoading, setUnsplashLoading] = useState(false);
+  const [unsplashError, setUnsplashError] = useState<string | null>(null);
+  const [unsplashTotal, setUnsplashTotal] = useState(0);
+
+  const isYouVersion = source === 'youversion';
+  const isUnsplash = source === 'unsplash';
+  const canUpload = isUnsplash;
+
   useEffect(() => {
     let active = true;
     setLoading(true);
@@ -53,6 +74,45 @@ export function ImageLibrary({
       active = false;
     };
   }, []);
+
+  // Debounce the Unsplash search box.
+  useEffect(() => {
+    if (!isUnsplash) return;
+    const t = window.setTimeout(() => setSearchQuery(searchDraft.trim()), SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(t);
+  }, [searchDraft, isUnsplash]);
+
+  // Live Unsplash results (empty query → curated/latest list).
+  useEffect(() => {
+    if (!isUnsplash) return;
+    let active = true;
+    setUnsplashLoading(true);
+    setUnsplashError(null);
+    searchUnsplashPhotos({
+      query: searchQuery || undefined,
+      page: 1,
+      perPage: 24,
+      orientation: unsplashOrient,
+    })
+      .then((result) => {
+        if (!active) return;
+        setUnsplashPhotos(result.photos);
+        setUnsplashTotal(result.total);
+      })
+      .catch((err: unknown) => {
+        if (!active) return;
+        const msg = err instanceof Error ? err.message : 'Unsplash search failed';
+        setUnsplashError(msg);
+        setUnsplashPhotos([]);
+        setUnsplashTotal(0);
+      })
+      .finally(() => {
+        if (active) setUnsplashLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [isUnsplash, searchQuery, unsplashOrient]);
 
   async function onUpload(file: File) {
     setUploading(true);
@@ -86,9 +146,27 @@ export function ImageLibrary({
     }
   }
 
+  function pickUnsplash(photo: UnsplashPhoto) {
+    const label =
+      photo.description?.trim() ||
+      `Unsplash · ${photo.user.name} · ${photo.id}`;
+    studio.selectUnsplashPhoto({
+      url: photo.urls.regular,
+      label,
+      attribution: {
+        photographerName: photo.user.name,
+        photographerUrl: photo.user.profileUrl,
+        photoUrl: photo.links.html,
+      },
+    });
+    // Guideline: trigger download tracking when the photo is selected for use.
+    void trackUnsplashPhotoDownload(photo).catch(() => {
+      /* non-blocking */
+    });
+    onPicked?.();
+  }
+
   const selected = studio.sharedBg;
-  const isYouVersion = source === 'youversion';
-  const canUpload = source === 'unsplash';
 
   let visible = assets.filter((a) => a.kind === kind && (!source || a.source === source));
   if (isYouVersion) {
@@ -98,18 +176,21 @@ export function ImageLibrary({
     if (orient !== 'all') visible = visible.filter((a) => a.orientation === orient);
   }
 
+  // Team-library Unsplash seeds only when not actively searching.
+  const teamUnsplash = isUnsplash && !searchQuery ? visible : [];
+
   const heading = isYouVersion
     ? 'YouVersion'
-    : source === 'unsplash'
+    : isUnsplash
       ? 'Unsplash'
       : 'Video library';
   const subtitle = isYouVersion
     ? 'Bible App verse backgrounds'
-    : source === 'unsplash'
-      ? 'Reusable photo backgrounds'
+    : isUnsplash
+      ? 'Search millions of free photos'
       : 'Reusable videos';
 
-  function card(a: SharedAsset) {
+  function assetCard(a: SharedAsset) {
     const active = selected?.url === a.fileUrl;
     const removing = removingId === a.id;
     const isVideo = a.kind === 'video';
@@ -163,8 +244,45 @@ export function ImageLibrary({
     );
   }
 
+  function unsplashCard(photo: UnsplashPhoto) {
+    const active = selected?.url === photo.urls.regular;
+    const alt = photo.description || `Photo by ${photo.user.name}`;
+    return (
+      <div
+        key={photo.id}
+        className={`group relative aspect-square overflow-hidden rounded-xl border bg-black transition ${
+          active ? 'border-brand ring-2 ring-brand/30' : 'border-line hover:border-faint'
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => pickUnsplash(photo)}
+          title={`${alt} — ${photo.user.name}`}
+          className="block h-full w-full"
+        >
+          <img
+            src={photo.urls.small}
+            alt={alt}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover"
+          />
+        </button>
+        <a
+          href={`${photo.user.profileUrl}?utm_source=versecut&utm_medium=referral`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-6 text-[11px] font-medium text-white opacity-0 transition group-hover:opacity-100"
+        >
+          {photo.user.name}
+        </a>
+      </div>
+    );
+  }
+
   const grid = (list: SharedAsset[]) => (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{list.map(card)}</div>
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{list.map(assetCard)}</div>
   );
 
   return (
@@ -197,6 +315,31 @@ export function ImageLibrary({
             {uploading ? 'Uploading…' : 'Add an image (JPG / PNG)'}
           </Button>
         </>
+      )}
+
+      {isUnsplash && (
+        <div className="mb-4 flex flex-col gap-3">
+          <label className="block">
+            <span className="sr-only">Search Unsplash</span>
+            <input
+              type="search"
+              value={searchDraft}
+              onChange={(e) => setSearchDraft(e.target.value)}
+              placeholder="Search Unsplash…"
+              className="h-11 w-full rounded-xl border border-line bg-surface px-3 text-[14px] text-ink outline-none transition placeholder:text-faint focus:border-faint focus:ring-4 focus:ring-brand/15"
+            />
+          </label>
+          <Segmented
+            value={unsplashOrient}
+            onChange={(v) => setUnsplashOrient(v as UnsplashOrientFilter)}
+            options={[
+              { value: 'all', label: 'All' },
+              { value: 'portrait', label: 'Portrait' },
+              { value: 'landscape', label: 'Landscape' },
+              { value: 'squarish', label: 'Square' },
+            ]}
+          />
+        </div>
       )}
 
       {isYouVersion && (
@@ -240,24 +383,57 @@ export function ImageLibrary({
         </div>
       )}
 
-      {error && <p className="mb-3 text-[13px] text-brand">{error}</p>}
-      {loading && (
+      {(error || unsplashError) && (
+        <p className="mb-3 text-[13px] text-brand">{error || unsplashError}</p>
+      )}
+
+      {isUnsplash && (
+        <>
+          {unsplashLoading && (
+            <div className="mb-3 flex items-center gap-2 text-[14px] text-muted">
+              <Spinner className="text-muted" /> Searching…
+            </div>
+          )}
+          {!unsplashLoading && unsplashPhotos.length === 0 && !unsplashError && (
+            <p className="mb-3 text-[14px] text-faint">No photos found.</p>
+          )}
+          {unsplashPhotos.length > 0 && (
+            <>
+              <p className="mb-3 text-[12px] font-medium text-faint">
+                {searchQuery
+                  ? `${unsplashTotal.toLocaleString()} results`
+                  : 'Popular on Unsplash'}
+              </p>
+              <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {unsplashPhotos.map(unsplashCard)}
+              </div>
+            </>
+          )}
+          {teamUnsplash.length > 0 && (
+            <>
+              <h3 className="mb-2 text-[14px] font-semibold text-ink">Team library</h3>
+              <p className="mb-3 text-[12px] text-faint">
+                Previously saved Unsplash-sourced backgrounds
+              </p>
+              {grid(teamUnsplash)}
+            </>
+          )}
+        </>
+      )}
+
+      {!isUnsplash && loading && (
         <div className="flex items-center gap-2 text-[14px] text-muted">
           <Spinner className="text-muted" /> Loading…
         </div>
       )}
 
-      {!loading && visible.length === 0 && (
+      {!isUnsplash && !loading && visible.length === 0 && (
         <p className="text-[14px] text-faint">
-          {kind === 'video'
-            ? 'No videos in the library yet.'
-            : canUpload
-              ? 'Nothing here yet — add an image above.'
-              : 'No matching backgrounds.'}
+          {kind === 'video' ? 'No videos in the library yet.' : 'No matching backgrounds.'}
         </p>
       )}
 
-      {visible.length > 0 && (
+      {!isUnsplash && visible.length > 0 && (
         <>
           {isYouVersion && (
             <p className="mb-3 text-[12px] font-medium text-faint">
