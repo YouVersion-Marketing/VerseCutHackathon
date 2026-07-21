@@ -1,5 +1,5 @@
-/** Paths that never require a WorkOS session (the sign-in flow). */
-export const PUBLIC_PREFIXES = ['/login', '/callback'] as const;
+/** Paths that never require a WorkOS session (the sign-in flow + AIR health check). */
+export const PUBLIC_PREFIXES = ['/login', '/callback', '/api/air/health'] as const;
 
 function matchesPrefix(pathname: string, prefixes: readonly string[]): boolean {
   return prefixes.some((p) => pathname === p || pathname.startsWith(p + '/'));
