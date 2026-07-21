@@ -1,13 +1,16 @@
 import { getAirEnv } from '@/lib/server/air';
+import { getAwsEnv } from '@/lib/server/aws';
+import { getBrazeEnv } from '@/lib/server/braze';
 
-// Public, no-secret diagnostic: reports whether AIR credentials are present in
-// the running environment (and the base URL), so we can confirm a deployment
-// actually has the env vars without exposing any secret values.
+// Public, no-secret diagnostic: reports whether each upload destination has
+// credentials present in the running environment (no secret values exposed).
 export function GET() {
-  const env = getAirEnv();
+  const air = getAirEnv();
+  const aws = getAwsEnv();
+  const braze = getBrazeEnv();
   return Response.json({
-    configured: !!env,
-    baseUrl: env?.baseUrl ?? null,
-    hasParentBoard: !!env?.parentBoardId,
+    air: { configured: !!air, baseUrl: air?.baseUrl ?? null },
+    aws: { configured: !!aws, bucket: aws?.bucket ?? null, region: aws?.region ?? null },
+    braze: { configured: !!braze, restEndpoint: braze?.restEndpoint ?? null },
   });
 }
