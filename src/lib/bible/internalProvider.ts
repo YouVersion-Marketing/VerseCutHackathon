@@ -6,7 +6,7 @@ import type {
   Passage,
   PassageQuery,
 } from './types';
-import { APP_LANGUAGES, APP_LANGUAGE_BY_CODE } from './appLanguages';
+import type { BibleManifest } from './manifestBuild';
 
 /**
  * Verse text via YouVersion's internal reader API (bible.youversionapi.com),
@@ -19,6 +19,24 @@ import { APP_LANGUAGES, APP_LANGUAGE_BY_CODE } from './appLanguages';
  * which we parse to extract the requested verse range.
  */
 const BASE = '/api/yvb/3.1';
+
+let manifestPromise: Promise<BibleManifest> | null = null;
+
+/** Fetch the generated catalog once; memoized for the session. */
+export function loadBibleManifest(): Promise<BibleManifest> {
+  if (!manifestPromise) {
+    manifestPromise = fetch('/bible-manifest.json').then((r) => {
+      if (!r.ok) throw new Error(`bible-manifest.json ${r.status}`);
+      return r.json() as Promise<BibleManifest>;
+    });
+  }
+  return manifestPromise;
+}
+
+/** Test hook: clear the memoized manifest. */
+export function __resetBibleManifest(): void {
+  manifestPromise = null;
+}
 
 interface VersionData {
   abbreviation?: string;
@@ -51,21 +69,19 @@ async function getVersion(versionId: string): Promise<VersionData> {
 
 export class YouVersionInternalProvider implements BibleProvider {
   async listLanguages(): Promise<Language[]> {
-    return APP_LANGUAGES.map((l) => ({ id: l.code, name: l.name }));
+    const m = await loadBibleManifest();
+    return m.languages.map((l) => ({ id: l.tag, name: l.name, code: l.code }));
   }
 
   async listVersions(languageId: string): Promise<BibleVersion[]> {
-    const lang = APP_LANGUAGE_BY_CODE[languageId];
-    if (!lang) return [];
-    const data = await getVersion(lang.defaultVersionId).catch(() => null);
-    return [
-      {
-        id: lang.defaultVersionId,
-        abbreviation: data?.local_abbreviation || data?.abbreviation || '',
-        name: data?.local_title || data?.title || lang.name,
-        languageId,
-      },
-    ];
+    const m = await loadBibleManifest();
+    const versions = m.versionsByTag[languageId] ?? [];
+    return versions.map((v) => ({
+      id: v.id,
+      abbreviation: v.abbr,
+      name: v.title,
+      languageId,
+    }));
   }
 
   async listBooks(versionId: string): Promise<Book[]> {
