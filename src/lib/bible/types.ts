@@ -1,6 +1,8 @@
 export interface Language {
   id: string;
   name: string;
+  /** iso_639_1 locale code for downstream features (voices/CTA/fonts). */
+  code?: string;
   /** Optional grouping label for the picker (e.g. "Top picks"). */
   group?: string;
 }

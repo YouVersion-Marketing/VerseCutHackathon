@@ -1,6 +1,11 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from 'vitest';
-import { extractVerses } from './internalProvider';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  extractVerses,
+  YouVersionInternalProvider,
+  loadBibleManifest,
+  __resetBibleManifest,
+} from './internalProvider';
 
 // Mirrors the YouVersion internal chapter HTML: per-verse [data-usfm] spans
 // with a .label (verse number) and .content (the words).
@@ -50,5 +55,57 @@ describe('extractVerses', () => {
       </div>`;
     // Inner node is skipped because its ancestor already matched.
     expect(extractVerses(nested, 'JHN', 3, 16, 16)).toBe('outer inner');
+  });
+});
+
+const MANIFEST = {
+  languages: [
+    { tag: 'eng', code: 'en', name: 'English', dir: 'ltr', defaultVersionId: '1', versionCount: 2 },
+    { tag: 'spa', code: 'es', name: 'Spanish', dir: 'ltr', defaultVersionId: '128', versionCount: 1 },
+  ],
+  versionsByTag: {
+    eng: [
+      { id: '12', abbr: 'ASV', title: 'American Standard Version' },
+      { id: '1', abbr: 'KJV', title: 'King James Version' },
+    ],
+    spa: [{ id: '128', abbr: 'RVR1960', title: 'Reina-Valera 1960' }],
+  },
+};
+
+describe('YouVersionInternalProvider manifest', () => {
+  beforeEach(() => {
+    __resetBibleManifest();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: true, status: 200, json: async () => MANIFEST })),
+    );
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    __resetBibleManifest();
+  });
+
+  it('lists languages with English names and iso codes', async () => {
+    const langs = await new YouVersionInternalProvider().listLanguages();
+    expect(langs).toEqual([
+      { id: 'eng', name: 'English', code: 'en' },
+      { id: 'spa', name: 'Spanish', code: 'es' },
+    ]);
+  });
+
+  it('lists all versions for a language tag', async () => {
+    const vs = await new YouVersionInternalProvider().listVersions('eng');
+    expect(vs).toEqual([
+      { id: '12', abbreviation: 'ASV', name: 'American Standard Version', languageId: 'eng' },
+      { id: '1', abbreviation: 'KJV', name: 'King James Version', languageId: 'eng' },
+    ]);
+  });
+
+  it('memoizes the manifest fetch across calls', async () => {
+    const p = new YouVersionInternalProvider();
+    await p.listLanguages();
+    await p.listVersions('spa');
+    await loadBibleManifest();
+    expect((fetch as unknown as { mock: { calls: unknown[] } }).mock.calls.length).toBe(1);
   });
 });
