@@ -396,18 +396,20 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
       // Same per-destination limits as the version export (Braze 100/hr; AIR
       // 15 req/s + 10 concurrent; AWS/S3 uncapped).
       const geoConcurrency = destination === 'braze' ? 2 : destination === 'air' ? 6 : 8;
-      const geoFailures: string[] = [];
+      const geoFailures: string[] = []; // display-capped sample of reasons
+      let failedCount = 0; // true failure total (the reasons list is capped at 20)
       let doneU = 0;
       await mapPool(tasks, geoConcurrency, async ({ g, img, index }) => {
         try {
           const blob = await imageUrlToJpegBlob(img.url);
           img.cdnUrl = await uploadGeo(blob, g.country, index);
         } catch (err) {
+          failedCount++;
           const m = err instanceof Error ? err.message : String(err);
           console.warn(`[geo-export] ${g.country} #${index + 1} failed:`, m);
           if (geoFailures.length < 20) geoFailures.push(`${g.country} #${index + 1}: ${m}`);
         } finally {
-          setProgress({ done: ++doneU, total: tasks.length, failed: geoFailures.length });
+          setProgress({ done: ++doneU, total: tasks.length, failed: failedCount });
         }
       });
       setFailReasons(geoFailures);
