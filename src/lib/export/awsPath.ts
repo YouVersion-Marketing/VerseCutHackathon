@@ -41,12 +41,19 @@ export function countrySlug(country: string): string {
 }
 
 /**
- * Object key/path for one geo background photo, e.g.
- * "versecut/2026-07-22/geo/south-africa_0.jpg". Kept in the `versecut/<date>/`
- * shape so it passes the export-key guard shared with the version export.
+ * Object key/path for one localized geo image, e.g.
+ * "versecut/2026-07-22/geo/south-africa_af.jpg". The suffix (a language code or
+ * index) makes it unique per country. Kept in the `versecut/<date>/` shape so it
+ * passes the export-key guard shared with the version export.
  */
-export function geoAssetPath(dateStr: string, country: string, index: number, ext = 'jpg'): string {
-  return `versecut/${dateStr}/geo/${countrySlug(country)}_${index}.${ext}`;
+export function geoAssetPath(
+  dateStr: string,
+  country: string,
+  suffix: string | number,
+  ext = 'jpg',
+): string {
+  const safe = String(suffix).replace(/[^A-Za-z0-9._-]/g, '-');
+  return `versecut/${dateStr}/geo/${countrySlug(country)}_${safe}.${ext}`;
 }
 
 /** Public URL for an object. Uses `base` (e.g. a CloudFront domain) when set, else the S3 path style. */

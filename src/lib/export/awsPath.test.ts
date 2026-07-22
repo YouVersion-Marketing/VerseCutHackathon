@@ -42,14 +42,14 @@ describe('countrySlug', () => {
 });
 
 describe('geoAssetPath', () => {
-  it('builds a geo photo key under the dated folder', () => {
-    expect(geoAssetPath('2026-07-22', 'South Africa', 0)).toBe(
-      'versecut/2026-07-22/geo/south-africa_0.jpg',
+  it('builds a per-language geo key under the dated folder', () => {
+    expect(geoAssetPath('2026-07-22', 'South Africa', 'af')).toBe(
+      'versecut/2026-07-22/geo/south-africa_af.jpg',
     );
   });
   it('produces keys that pass the export-key guard', () => {
-    expect(isValidExportKey(geoAssetPath('2026-07-22', 'United States', 2))).toBe(true);
-    expect(isValidExportKey(geoAssetPath('2026-07-22', 'France', 1, 'png'))).toBe(true);
+    expect(isValidExportKey(geoAssetPath('2026-07-22', 'United States', 'en'))).toBe(true);
+    expect(isValidExportKey(geoAssetPath('2026-07-22', 'France', 'fr', 'png'))).toBe(true);
   });
 });
 
