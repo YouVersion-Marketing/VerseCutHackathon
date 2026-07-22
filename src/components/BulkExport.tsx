@@ -673,7 +673,14 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
               <p className="mt-2 text-[12px] leading-snug text-brand">
                 Heads up: CDN Links aren’t enabled on the AIR workspace, so links fall back to
                 imgix preview URLs that 404 for a few seconds while each asset processes. Use
-                AWS S3 or Braze for stable links, or enable CDN Links in AIR.
+                AWS S3 for stable links, or enable CDN Links in AIR.
+              </p>
+            )}
+            {destination === 'braze' && (
+              <p className="mt-2 text-[12px] leading-snug text-brand">
+                Heads up: Braze caps media uploads at 100/hour. Uploads are paced and retried to
+                stay under it, so large runs get slow after the first ~100 — use AWS S3 for bulk,
+                and Stop when you have enough.
               </p>
             )}
           </div>

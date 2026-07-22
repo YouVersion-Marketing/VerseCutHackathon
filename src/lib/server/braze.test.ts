@@ -57,4 +57,17 @@ describe('uploadToBraze', () => {
       uploadToBraze(new Uint8Array([1]), { name: 'a/b', mime: 'image/jpeg', env: ENV, fetchImpl }),
     ).rejects.toThrow(/unsupported file type/);
   });
+
+  it('throws a BrazeUploadError with status + Retry-After on 429', async () => {
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ message: 'exceeded your limit of 100 requests per hour' }), {
+          status: 429,
+          headers: { 'content-type': 'application/json', 'retry-after': '42' },
+        }),
+    ) as unknown as typeof fetch;
+    await expect(
+      uploadToBraze(new Uint8Array([1]), { name: 'a/b', mime: 'image/jpeg', env: ENV, fetchImpl }),
+    ).rejects.toMatchObject({ status: 429, retryAfterSec: 42 });
+  });
 });
