@@ -31,6 +31,8 @@ export interface VersionExportOptions {
   /** Pre-computed light/dark theme (avoids per-version luminance sampling). */
   dark?: boolean;
   concurrency?: number;
+  /** Cooperative cancel: when it returns true, workers stop taking new versions. */
+  shouldStop?: () => boolean;
   isDone?: (versionId: string) => boolean;
   onProgress?: (p: { done: number; total: number; failed: number }) => void;
   onRow?: (row: VersionExportRow) => void;
@@ -111,6 +113,7 @@ export async function runVersionExport(
 
   async function worker() {
     while (next < pending.length) {
+      if (opts.shouldStop?.()) break;
       const version = pending[next++];
       let row: VersionExportRow | null = null;
       for (let attempt = 0; attempt < 2 && !row; attempt++) {

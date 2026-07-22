@@ -14,7 +14,8 @@ import { uploadImageToAir } from '../lib/export/airClient';
 import { uploadImageToAws } from '../lib/export/awsClient';
 import { uploadImageToBraze } from '../lib/export/brazeClient';
 import { exportFolder, exportAssetPath } from '../lib/export/awsPath';
-import { geoUploaderFor, imageUrlToJpegBlob } from '../lib/export/geoUpload';
+import { geoUploaderFor } from '../lib/export/geoUpload';
+import { resolveBulkLogo } from '../lib/export/logo';
 import { runVersionExport, type ExportVersion } from '../lib/export/versionExport';
 import { useStudio } from '../lib/useStudio';
 import { GradientPicker } from './studio/controls';
@@ -28,7 +29,7 @@ const DESTINATIONS: { value: Destination; label: string }[] = [
   { value: 'braze', label: 'Braze media library' },
 ];
 import { prioritizeVersions, DEFAULT_PRIORITY_CODES } from '../lib/export/versionOrder';
-import type { VersionExportRow } from '../lib/export/types';
+import type { VersionExportRow, GeoLanguageRender, GeoImage } from '../lib/export/types';
 import { buildVersionsCsv, buildGeoByCountryCsv, buildGeoByLanguageCsv } from '../lib/export/csv';
 import { LANGUAGE_COUNTRY } from '../lib/export/languageCountry';
 import { planGeoQueries, buildGeoResults, type RawGeoPhoto } from '../lib/export/geoBackgrounds';
@@ -66,12 +67,19 @@ function decodeImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-/** Bounded-concurrency map (preserves input order in the result). */
-async function mapPool<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>): Promise<R[]> {
+/** Bounded-concurrency map (preserves input order in the result). Stops taking
+ *  new items once `shouldStop` returns true (in-flight items still finish). */
+async function mapPool<T, R>(
+  items: T[],
+  limit: number,
+  fn: (t: T) => Promise<R>,
+  shouldStop?: () => boolean,
+): Promise<R[]> {
   const out: R[] = new Array(items.length);
   let next = 0;
   async function worker() {
     while (next < items.length) {
+      if (shouldStop?.()) break;
       const i = next++;
       out[i] = await fn(items[i]);
     }
@@ -125,6 +133,13 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
   const [rows, setRows] = useState<VersionExportRow[] | null>(null);
   const [geoReady, setGeoReady] = useState<{ byCountry: string; byLanguage: string } | null>(null);
   const [running, setRunning] = useState(false);
+  const [stopping, setStopping] = useState(false);
+  // Cooperative cancel flag for the current run (checked by the export loops).
+  const stopRef = useRef(false);
+  const requestStop = () => {
+    stopRef.current = true;
+    setStopping(true);
+  };
   const [error, setError] = useState<string | null>(null);
   const [failReasons, setFailReasons] = useState<string[]>([]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -287,6 +302,8 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
 
   async function runVersions() {
     setRunning(true);
+    stopRef.current = false;
+    setStopping(false);
     setError(null);
     setFailReasons([]);
     setRows(null);
@@ -345,6 +362,7 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
           gradientHex: studio.customColor,
           dark,
           concurrency,
+          shouldStop: () => stopRef.current,
           onProgress: setProgress,
           onError: (versionId, err) => {
             const m = err instanceof Error ? err.message : String(err);
@@ -360,62 +378,138 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
       setError(e instanceof Error ? e.message : 'Export failed');
     } finally {
       setRunning(false);
+      setStopping(false);
     }
   }
 
   async function runGeo() {
     setRunning(true);
+    stopRef.current = false;
     setError(null);
+    setFailReasons([]);
+    setGeoReady(null);
+    setProgress(null);
     try {
+      const reference = { bookId, chapter, fromVerse, toVerse };
       const manifest = await loadBibleManifest();
-      const languages = manifest.languages
+      // Languages mapped to a country, each with a version to source verse text.
+      type GeoLang = { code: string; name: string; country: string; versionId: string };
+      const geoLangs: GeoLang[] = manifest.languages
         .filter((l) => LANGUAGE_COUNTRY[l.code])
-        .map((l) => ({ code: l.code, name: l.name }));
+        .map((l) => ({
+          code: l.code,
+          name: l.name,
+          country: LANGUAGE_COUNTRY[l.code].country,
+          versionId: manifest.versionsByTag[l.tag]?.[0]?.id,
+        }))
+        .filter((l): l is GeoLang => Boolean(l.versionId));
+
+      // Phase 1 — source landmark photos per country (kept low for Unsplash limits).
       const countries = new Map<string, string>();
-      for (const l of languages) {
-        const info = LANGUAGE_COUNTRY[l.code];
-        countries.set(info.country, info.capital);
-      }
-      // Bounded concurrency (keep low to respect Unsplash rate limits).
+      for (const l of geoLangs) countries.set(l.country, LANGUAGE_COUNTRY[l.code].capital);
       const entries = [...countries.entries()];
       const photosByCountry = new Map<string, RawGeoPhoto[]>();
       let doneC = 0;
-      await mapPool(entries, 4, async ([country, capital]) => {
-        const photos = await fetchCountryPhotos(country, capital);
-        photosByCountry.set(country, photos);
-        setProgress({ done: ++doneC, total: entries.length, failed: 0 });
-      });
-      const results = buildGeoResults(languages, photosByCountry, { maxImages: 3 });
+      await mapPool(
+        entries,
+        4,
+        async ([country, capital]) => {
+          const photos = await fetchCountryPhotos(country, capital);
+          photosByCountry.set(country, photos);
+          setProgress({ done: ++doneC, total: entries.length, failed: 0 });
+        },
+        () => stopRef.current,
+      );
+      const results = buildGeoResults(
+        geoLangs.map((l) => ({ code: l.code, name: l.name })),
+        photosByCountry,
+        { maxImages: 3 },
+      );
+      // The top landmark photo per country is the background we render onto.
+      const topByCountry = new Map<string, GeoImage>();
+      for (const g of results) if (g.images[0]) topByCountry.set(g.country, g.images[0]);
 
-      // Upload every geo photo to the chosen destination so the CSV carries a
-      // stable CDN link, not just the Unsplash URL. Attribution (image_urls +
-      // unsplash_credits) is preserved alongside per Unsplash's guidelines.
+      // Phase 2 — render the verse in each language over its country's top photo
+      // (correct language text + localized logo) and upload the localized image.
       const dateStr = new Date().toLocaleDateString('en-CA');
       const uploadGeo = geoUploaderFor(destination, dateStr);
-      const tasks = results.flatMap((g) => g.images.map((img, index) => ({ g, img, index })));
-      // Same per-destination limits as the version export (Braze 100/hr; AIR
-      // 15 req/s + 10 concurrent; AWS/S3 uncapped).
+      // Decode + theme each country's top photo once, shared across its languages.
+      const bgCache = new Map<string, Promise<{ image: CanvasImageSource; dark: boolean }>>();
+      const bgForCountry = (country: string, url: string) => {
+        let p = bgCache.get(country);
+        if (!p) {
+          p = decodeImage(url).then((image) => ({
+            image,
+            dark: isDarkBackground({ type: 'image', image } as Background),
+          }));
+          bgCache.set(country, p);
+        }
+        return p;
+      };
+
+      const langTasks = geoLangs.filter((l) => topByCountry.has(l.country));
       const geoConcurrency = destination === 'braze' ? 2 : destination === 'air' ? 6 : 8;
+      const rendered: GeoLanguageRender[] = [];
       const geoFailures: string[] = []; // display-capped sample of reasons
       let failedCount = 0; // true failure total (the reasons list is capped at 20)
       let doneU = 0;
-      await mapPool(tasks, geoConcurrency, async ({ g, img, index }) => {
-        try {
-          const blob = await imageUrlToJpegBlob(img.url);
-          img.cdnUrl = await uploadGeo(blob, g.country, index);
-        } catch (err) {
-          failedCount++;
-          const m = err instanceof Error ? err.message : String(err);
-          console.warn(`[geo-export] ${g.country} #${index + 1} failed:`, m);
-          if (geoFailures.length < 20) geoFailures.push(`${g.country} #${index + 1}: ${m}`);
-        } finally {
-          setProgress({ done: ++doneU, total: tasks.length, failed: failedCount });
-        }
-      });
+      await mapPool(
+        langTasks,
+        geoConcurrency,
+        async (l) => {
+          const top = topByCountry.get(l.country)!;
+          try {
+            const passage = await provider.fetchPassage({ versionId: l.versionId, ...reference });
+            const { image, dark } = await bgForCountry(l.country, top.url);
+            const logo = resolveBulkLogo(l.code, logoStyle);
+            const asset = await renderImage({
+              passage,
+              aspect,
+              dimensions: ASPECT_DIMENSIONS[aspect],
+              imageFile: null,
+              videoFile: null,
+              imageUrl: null,
+              backgroundImage: image,
+              dark,
+              mimeType: 'image/jpeg',
+              languageId: logo.languageId,
+              logoStyle: logo.logoStyle,
+              template: 'classic',
+              gradientId: null,
+              gradientHex: null,
+            });
+            let cdn_url = '';
+            try {
+              cdn_url = await uploadGeo(asset.blob, l.country, l.code);
+            } finally {
+              URL.revokeObjectURL(asset.url);
+            }
+            rendered.push({
+              language: l.code,
+              language_name: l.name,
+              country: l.country,
+              reference: passage.reference,
+              verse_text: passage.text,
+              background_url: top.url,
+              credit: top.credit,
+              cdn_url,
+            });
+          } catch (err) {
+            failedCount++;
+            const m = err instanceof Error ? err.message : String(err);
+            console.warn(`[geo-export] ${l.country}/${l.code} failed:`, m);
+            if (geoFailures.length < 20) geoFailures.push(`${l.country}/${l.code}: ${m}`);
+          } finally {
+            setProgress({ done: ++doneU, total: langTasks.length, failed: failedCount });
+          }
+        },
+        () => stopRef.current,
+      );
       setFailReasons(geoFailures);
 
+      rendered.sort((a, b) => a.language.localeCompare(b.language));
       const byCountry = buildGeoByCountryCsv(results);
-      const byLanguage = buildGeoByLanguageCsv(results);
+      const byLanguage = buildGeoByLanguageCsv(rendered);
       setGeoReady({ byCountry, byLanguage });
       download('geo-backgrounds-by-country.csv', byCountry);
       await sleep(400); // stagger the second download so both files save
@@ -424,6 +518,7 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
       setError(e instanceof Error ? e.message : 'Geo export failed');
     } finally {
       setRunning(false);
+      setStopping(false);
     }
   }
 
@@ -568,7 +663,7 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-6 flex items-center gap-3">
           <Button
             variant="primary"
             onClick={exportType === 'geo' ? runGeo : runVersions}
@@ -582,6 +677,11 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
                   ? `Export ${limit} versions`
                   : 'Export all versions'}
           </Button>
+          {running && (
+            <Button variant="secondary" onClick={requestStop} disabled={stopping}>
+              {stopping ? 'Stopping…' : 'Stop'}
+            </Button>
+          )}
         </div>
 
         {progress && (

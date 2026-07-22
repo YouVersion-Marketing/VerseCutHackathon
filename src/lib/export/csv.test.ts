@@ -6,7 +6,7 @@ import {
   buildGeoByCountryCsv,
   buildGeoByLanguageCsv,
 } from './csv';
-import type { GeoResult, VersionExportRow } from './types';
+import type { GeoLanguageRender, GeoResult, VersionExportRow } from './types';
 
 describe('csvCell', () => {
   it('passes plain values through', () => {
@@ -48,8 +48,8 @@ const GEO: GeoResult[] = [
     country: 'France',
     capital: 'Paris',
     images: [
-      { url: 'https://img/a.jpg', credit: 'Ann / Unsplash', cdnUrl: 'https://cdn/a.jpg' },
-      { url: 'https://img/b.jpg', credit: 'Bo / Unsplash' }, // not uploaded → blank cdn cell
+      { url: 'https://img/a.jpg', credit: 'Ann / Unsplash' },
+      { url: 'https://img/b.jpg', credit: 'Bo / Unsplash' },
     ],
     languages: [
       { code: 'fr', name: 'French' },
@@ -59,20 +59,59 @@ const GEO: GeoResult[] = [
 ];
 
 describe('buildGeoByCountryCsv', () => {
-  it('joins images per country row, with cdn links and blanks for un-uploaded photos', () => {
+  it('lists the raw candidate photos per country in per-image columns', () => {
     expect(buildGeoByCountryCsv(GEO)).toBe(
-      'country,capital,image_urls,cdn_urls,unsplash_credits\r\n' +
-        'France,Paris,https://img/a.jpg | https://img/b.jpg,https://cdn/a.jpg | ,Ann / Unsplash | Bo / Unsplash\r\n',
+      'country,capital,image_url_1,credit_1,image_url_2,credit_2\r\n' +
+        'France,Paris,https://img/a.jpg,Ann / Unsplash,https://img/b.jpg,Bo / Unsplash\r\n',
+    );
+  });
+
+  it('pads rows with fewer images so every row has the same columns', () => {
+    const mixed: GeoResult[] = [
+      GEO[0],
+      {
+        country: 'Spain',
+        capital: 'Madrid',
+        images: [{ url: 'https://img/s.jpg', credit: 'Si / Unsplash' }],
+        languages: [{ code: 'es', name: 'Spanish' }],
+      },
+    ];
+    expect(buildGeoByCountryCsv(mixed)).toBe(
+      'country,capital,image_url_1,credit_1,image_url_2,credit_2\r\n' +
+        'France,Paris,https://img/a.jpg,Ann / Unsplash,https://img/b.jpg,Bo / Unsplash\r\n' +
+        'Spain,Madrid,https://img/s.jpg,Si / Unsplash,,\r\n',
     );
   });
 });
 
 describe('buildGeoByLanguageCsv', () => {
-  it('emits one row per language pointing at the country images and cdn links', () => {
-    expect(buildGeoByLanguageCsv(GEO)).toBe(
-      'language,language_name,country,image_urls,cdn_urls,unsplash_credits\r\n' +
-        'fr,French,France,https://img/a.jpg | https://img/b.jpg,https://cdn/a.jpg | ,Ann / Unsplash | Bo / Unsplash\r\n' +
-        'br,Breton,France,https://img/a.jpg | https://img/b.jpg,https://cdn/a.jpg | ,Ann / Unsplash | Bo / Unsplash\r\n',
+  it('emits one localized rendered image row per language with its cdn link', () => {
+    const rows: GeoLanguageRender[] = [
+      {
+        language: 'fr',
+        language_name: 'French',
+        country: 'France',
+        reference: 'Jean 3:16',
+        verse_text: 'Car Dieu a tant aimé le monde',
+        background_url: 'https://img/a.jpg',
+        credit: 'Ann / Unsplash',
+        cdn_url: 'https://cdn/fr.jpg',
+      },
+      {
+        language: 'br',
+        language_name: 'Breton',
+        country: 'France',
+        reference: 'Yann 3:16',
+        verse_text: 'Rak Doue en deus karet',
+        background_url: 'https://img/a.jpg',
+        credit: 'Ann / Unsplash',
+        cdn_url: '', // upload failed → blank
+      },
+    ];
+    expect(buildGeoByLanguageCsv(rows)).toBe(
+      'language,language_name,country,reference,verse_text,background_url,cdn_url,credit\r\n' +
+        'fr,French,France,Jean 3:16,Car Dieu a tant aimé le monde,https://img/a.jpg,https://cdn/fr.jpg,Ann / Unsplash\r\n' +
+        'br,Breton,France,Yann 3:16,Rak Doue en deus karet,https://img/a.jpg,,Ann / Unsplash\r\n',
     );
   });
 });

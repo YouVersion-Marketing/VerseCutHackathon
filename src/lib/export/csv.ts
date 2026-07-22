@@ -1,6 +1,4 @@
-import type { GeoResult, VersionExportRow } from './types';
-
-const IMG_JOIN = ' | ';
+import type { GeoImage, GeoLanguageRender, GeoResult, VersionExportRow } from './types';
 
 /**
  * Escape a CSV field. RFC-4180 quoting for comma/quote/CR/LF, plus
@@ -25,31 +23,50 @@ export function buildVersionsCsv(rows: VersionExportRow[]): string {
   );
 }
 
+/** Largest image count across results (>=1), so every row has the same columns. */
+function maxImageCount(results: GeoResult[]): number {
+  return Math.max(1, ...results.map((g) => g.images.length));
+}
+
+/** Per-image column headers: image_url_1, credit_1, image_url_2, credit_2, ... */
+function imageHeaders(count: number): string[] {
+  const headers: string[] = [];
+  for (let i = 1; i <= count; i++) headers.push(`image_url_${i}`, `credit_${i}`);
+  return headers;
+}
+
+/** Per-image cells for one result, padded to `count` images with blanks. */
+function imageCells(images: GeoImage[], count: number): string[] {
+  const cells: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const img = images[i];
+    cells.push(img?.url ?? '', img?.credit ?? '');
+  }
+  return cells;
+}
+
+/** By-country: the raw candidate landmark photos per country (sourcing reference). */
 export function buildGeoByCountryCsv(results: GeoResult[]): string {
+  const count = maxImageCount(results);
   return toCsv(
-    ['country', 'capital', 'image_urls', 'cdn_urls', 'unsplash_credits'],
-    results.map((g) => [
-      g.country,
-      g.capital,
-      g.images.map((i) => i.url).join(IMG_JOIN),
-      g.images.map((i) => i.cdnUrl ?? '').join(IMG_JOIN),
-      g.images.map((i) => i.credit).join(IMG_JOIN),
-    ]),
+    ['country', 'capital', ...imageHeaders(count)],
+    results.map((g) => [g.country, g.capital, ...imageCells(g.images, count)]),
   );
 }
 
-export function buildGeoByLanguageCsv(results: GeoResult[]): string {
-  const rows: string[][] = [];
-  for (const g of results) {
-    const urls = g.images.map((i) => i.url).join(IMG_JOIN);
-    const cdnUrls = g.images.map((i) => i.cdnUrl ?? '').join(IMG_JOIN);
-    const credits = g.images.map((i) => i.credit).join(IMG_JOIN);
-    for (const lang of g.languages) {
-      rows.push([lang.code, lang.name, g.country, urls, cdnUrls, credits]);
-    }
-  }
+/** By-language: one localized rendered verse image per language, with its CDN link. */
+export function buildGeoByLanguageCsv(rows: GeoLanguageRender[]): string {
   return toCsv(
-    ['language', 'language_name', 'country', 'image_urls', 'cdn_urls', 'unsplash_credits'],
-    rows,
+    ['language', 'language_name', 'country', 'reference', 'verse_text', 'background_url', 'cdn_url', 'credit'],
+    rows.map((r) => [
+      r.language,
+      r.language_name,
+      r.country,
+      r.reference,
+      r.verse_text,
+      r.background_url,
+      r.cdn_url,
+      r.credit,
+    ]),
   );
 }
