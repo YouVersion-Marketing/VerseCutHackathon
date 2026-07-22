@@ -329,15 +329,16 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
       const dateStr = new Date().toLocaleDateString('en-CA');
       const folder = exportFolder(dateStr, reference);
       const idFromFile = (fileName: string) => fileName.replace(/\.[^.]+$/, '');
+      const stop = () => stopRef.current;
       const uploadImage =
         destination === 'aws'
           ? (blob: Blob, fileName: string) =>
-              uploadImageToAws(blob, exportAssetPath(dateStr, reference, idFromFile(fileName), 'jpg'))
+              uploadImageToAws(blob, exportAssetPath(dateStr, reference, idFromFile(fileName), 'jpg'), stop)
           : destination === 'braze'
             ? (blob: Blob, fileName: string) =>
-                uploadImageToBraze(blob, `${folder}/${idFromFile(fileName)}`)
+                uploadImageToBraze(blob, `${folder}/${idFromFile(fileName)}`, stop)
             : (blob: Blob, fileName: string) =>
-                uploadImageToAir(blob, exportAssetPath(dateStr, reference, idFromFile(fileName), 'jpg'));
+                uploadImageToAir(blob, exportAssetPath(dateStr, reference, idFromFile(fileName), 'jpg'), stop);
 
       // Keep bursts within each destination's limits: Braze media API is
       // 100/hr, AIR is 15 req/s + 10 concurrent (and each AIR upload fans out to
@@ -441,7 +442,7 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
       // Phase 2 — render the verse in each language over its country's top photo
       // (correct language text + localized logo) and upload the localized image.
       const dateStr = new Date().toLocaleDateString('en-CA');
-      const uploadGeo = geoUploaderFor(destination, dateStr);
+      const uploadGeo = geoUploaderFor(destination, dateStr, () => stopRef.current);
       // Decode + theme each country's top photo once, shared across its languages.
       const bgCache = new Map<string, Promise<{ image: CanvasImageSource; dark: boolean }>>();
       const bgForCountry = (country: string, url: string) => {
@@ -673,7 +674,14 @@ export function BulkExport({ userEmail }: { userEmail?: string | null }) {
               <p className="mt-2 text-[12px] leading-snug text-brand">
                 Heads up: CDN Links aren’t enabled on the AIR workspace, so links fall back to
                 imgix preview URLs that 404 for a few seconds while each asset processes. Use
-                AWS S3 or Braze for stable links, or enable CDN Links in AIR.
+                AWS S3 for stable links, or enable CDN Links in AIR.
+              </p>
+            )}
+            {destination === 'braze' && (
+              <p className="mt-2 text-[12px] leading-snug text-brand">
+                Heads up: Braze caps media uploads at 100/hour. Uploads are paced and retried to
+                stay under it, so large runs get slow after the first ~100 — use AWS S3 for bulk,
+                and Stop when you have enough.
               </p>
             )}
           </div>

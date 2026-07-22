@@ -26,6 +26,18 @@ export function fileNameFor(name: string, mime: string): string {
   return `${name}.${MIME_EXT[mime] ?? 'jpg'}`;
 }
 
+/** Error from Braze's media_library/create carrying the HTTP status + Retry-After. */
+export class BrazeUploadError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly retryAfterSec?: number,
+  ) {
+    super(message);
+    this.name = 'BrazeUploadError';
+  }
+}
+
 interface BrazeCreateResponse {
   new_assets?: { name?: string; url?: string; ext?: string; size?: number }[];
   errors?: unknown[];
@@ -62,7 +74,12 @@ export async function uploadToBraze(
 
   const body = (await res.json().catch(() => ({}))) as BrazeCreateResponse;
   if (!res.ok) {
-    throw new Error(`Braze media_library/create ${res.status}: ${body.message ?? 'request failed'}`);
+    const retryAfter = Number(res.headers.get('retry-after')) || undefined;
+    throw new BrazeUploadError(
+      `Braze media_library/create ${res.status}: ${body.message ?? 'request failed'}`,
+      res.status,
+      retryAfter,
+    );
   }
   const url = body.new_assets?.[0]?.url;
   if (!url) {
